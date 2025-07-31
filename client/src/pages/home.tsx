@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,22 +10,75 @@ import QRScanner from "@/components/qr-scanner";
 import { ClipboardCopy, Smartphone, Shield, QrCode, Scan } from "lucide-react";
 
 export default function Home() {
-  const [clipTag, setClipTag] = useState("");
+  const [clipTag, setClipTag] = useState(["", "", "", ""]);
   const [, setLocation] = useLocation();
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
   
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+  // Auto-focus first input on component mount
+  useEffect(() => {
+    inputRefs[0].current?.focus();
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (clipTag.length === 4) {
-      setLocation(`/room/${clipTag}`);
+    const fullTag = clipTag.join("");
+    if (fullTag.length === 4) {
+      setLocation(`/room/${fullTag}`);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4);
-    setClipTag(value);
+  const handleInputChange = (index: number, value: string) => {
+    // Only allow alphanumeric characters
+    const cleanValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    
+    if (cleanValue.length <= 1) {
+      const newClipTag = [...clipTag];
+      newClipTag[index] = cleanValue;
+      setClipTag(newClipTag);
+
+      // Auto-focus next input if character entered
+      if (cleanValue && index < 3) {
+        inputRefs[index + 1].current?.focus();
+      }
+
+      // Auto-submit when all 4 characters are entered
+      if (index === 3 && cleanValue && newClipTag.every(char => char !== "")) {
+        const fullTag = newClipTag.join("");
+        setTimeout(() => setLocation(`/room/${fullTag}`), 100);
+      }
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    // Handle backspace to move to previous input
+    if (e.key === 'Backspace' && !clipTag[index] && index > 0) {
+      inputRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4);
+    
+    if (pastedText.length > 0) {
+      const newClipTag = ["", "", "", ""];
+      for (let i = 0; i < Math.min(pastedText.length, 4); i++) {
+        newClipTag[i] = pastedText[i];
+      }
+      setClipTag(newClipTag);
+
+      // Focus the appropriate input
+      const nextEmptyIndex = Math.min(pastedText.length, 3);
+      inputRefs[nextEmptyIndex].current?.focus();
+
+      // Auto-submit if 4 characters pasted
+      if (pastedText.length === 4) {
+        setTimeout(() => setLocation(`/room/${pastedText}`), 100);
+      }
+    }
   };
 
   return (
@@ -59,31 +112,48 @@ export default function Home() {
         <Card className="shadow-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <form onSubmit={handleSubmit}>
-              <Label htmlFor="cliptag" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
-                Enter your ClipTag
+              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-4 text-center">
+                Enter your 4-character ClipTag
               </Label>
-              <div className="flex space-x-3">
-                <Input
-                  type="text"
-                  id="cliptag"
-                  value={clipTag}
-                  onChange={handleInputChange}
-                  placeholder="A2D9"
-                  maxLength={4}
-                  className="flex-1 text-lg font-mono uppercase text-center tracking-widest dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                  required
-                />
+              
+              {/* 4-Character Input Boxes */}
+              <div className="flex justify-center space-x-3 mb-4">
+                {clipTag.map((char, index) => (
+                  <Input
+                    key={index}
+                    ref={inputRefs[index]}
+                    type="text"
+                    value={char}
+                    onChange={(e) => handleInputChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
+                    placeholder="?"
+                    maxLength={1}
+                    className="w-14 h-14 text-2xl font-mono font-bold uppercase text-center border-2 border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary rounded-xl shadow-md dark:bg-gray-700 dark:text-white transition-all duration-200 hover:shadow-lg focus:shadow-lg"
+                    autoComplete="off"
+                  />
+                ))}
+              </div>
+
+              <div className="text-center mb-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Enter 4 alphanumeric characters (A-Z, 0-9)
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  Auto-joins room when complete
+                </p>
+              </div>
+
+              {/* Manual Submit Button (hidden when all filled) */}
+              {clipTag.some(char => char === "") && (
                 <Button 
                   type="submit"
-                  className="px-6 py-3 bg-primary text-white font-medium hover:bg-blue-600"
-                  disabled={clipTag.length !== 4}
+                  className="w-full px-6 py-3 bg-primary text-white font-medium hover:bg-blue-600 transition-all duration-200"
+                  disabled={clipTag.some(char => char === "")}
                 >
                   Join Room
                 </Button>
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
-                Use 4 alphanumeric characters (e.g., A2D9, B7X3, M9K1)
-              </p>
+              )}
             </form>
             
             {/* QR Scanner Button for Mobile */}
