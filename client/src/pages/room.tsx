@@ -36,6 +36,8 @@ export default function Room() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate and refetch the clipboard data after sync
+      queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
       toast({
         title: "Success",
         description: "Text synchronized successfully!",
@@ -53,6 +55,8 @@ export default function Room() {
   // Fetch mutation
   const fetchMutation = useMutation({
     mutationFn: async () => {
+      // Invalidate first to clear any stale cache, then fetch fresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
       return queryClient.fetchQuery({
         queryKey: ["/api/clip", tag],
       });
