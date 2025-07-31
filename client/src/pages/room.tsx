@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { ArrowLeft, ClipboardCopy, Edit3, Eye, RefreshCw, Download, Copy, QrCode } from "lucide-react";
+import { ArrowLeft, ClipboardCopy, Edit3, Eye, RefreshCw, Download, Copy, QrCode, ClipboardPaste } from "lucide-react";
 import QRModal from "@/components/qr-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
@@ -113,6 +113,33 @@ export default function Room() {
     }
   };
 
+  const handlePasteAndSync = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text.trim()) {
+        setSenderText(text);
+        // Auto-sync the pasted content
+        syncMutation.mutate(text);
+        toast({
+          title: "Pasted and Syncing",
+          description: "Content pasted and syncing to room...",
+        });
+      } else {
+        toast({
+          title: "Nothing to paste",
+          description: "Your clipboard is empty",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Paste failed",
+        description: "Could not read from clipboard. Please paste manually or check browser permissions.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -208,18 +235,33 @@ export default function Room() {
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   {senderText.length} characters
                 </div>
-                <Button
-                  onClick={handleSync}
-                  disabled={!senderText.trim() || syncMutation.isPending}
-                  className="px-6 py-2 bg-primary text-white font-medium hover:bg-blue-600 flex items-center space-x-2"
-                >
-                  {syncMutation.isPending ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  <span>Sync</span>
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={handlePasteAndSync}
+                    disabled={syncMutation.isPending}
+                    variant="outline"
+                    className="px-4 py-2 flex items-center space-x-2 border-green-300 text-green-700 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/20"
+                  >
+                    {syncMutation.isPending ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <ClipboardPaste className="w-4 h-4" />
+                    )}
+                    <span>Paste & Sync</span>
+                  </Button>
+                  <Button
+                    onClick={handleSync}
+                    disabled={!senderText.trim() || syncMutation.isPending}
+                    className="px-6 py-2 bg-primary text-white font-medium hover:bg-blue-600 flex items-center space-x-2"
+                  >
+                    {syncMutation.isPending ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    <span>Sync</span>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

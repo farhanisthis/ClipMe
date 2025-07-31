@@ -38,6 +38,15 @@ Preferred communication style: Simple, everyday language.
 - Glassmorphism UI design with backdrop blur effects
 - Gradient text styling for brand name throughout app
 
+### Enhanced Input Experience (July 31, 2025)
+- Replaced single input with 4 separate character boxes
+- Auto-focus navigation between input boxes
+- Auto-login when all 4 characters are entered
+- Backspace navigation to move to previous box
+- Paste support that fills all 4 boxes at once
+- Updated QR scanner with same 4-box input format
+- Added "Paste & Sync" button for direct clipboard pasting and syncing
+
 ## System Architecture
 
 ### Frontend Architecture
