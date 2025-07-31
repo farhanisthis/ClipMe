@@ -172,12 +172,12 @@ export default function Room() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.04),transparent_50%)]"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.04),transparent_50%)]"></div>
-      {/* Enhanced Header with mobile optimization */}
-      <header className="bg-white/85 dark:bg-gray-800/85 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50 px-3 sm:px-4 py-3 sm:py-4 relative z-10 sticky top-0">
+      {/* Enhanced Animated Background with better dark blue tones */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-slate-900 dark:to-indigo-950"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_80%,rgba(96,165,250,0.08),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_20%,rgba(139,92,246,0.06),transparent_50%)]"></div>
+      {/* Enhanced Header with better dark blue tones */}
+      <header className="bg-white/85 dark:bg-slate-900/90 backdrop-blur-lg border-b border-gray-200/50 dark:border-blue-800/30 px-3 sm:px-4 py-3 sm:py-4 relative z-10 sticky top-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
             <Button
@@ -196,7 +196,7 @@ export default function Room() {
                   <span className="hidden sm:inline text-sm text-slate-600 dark:text-slate-300 font-medium">Room:</span>
                   <button
                     onClick={() => handleCopyToClipboard(tag)}
-                    className="group flex items-center gap-1 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 px-2 py-1 rounded-lg hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800/40 dark:hover:to-purple-800/40 transition-all duration-200"
+                    className="group flex items-center gap-1 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-blue-800/40 dark:to-indigo-800/40 px-2 py-1 rounded-lg hover:from-indigo-200 hover:to-purple-200 dark:hover:from-blue-700/50 dark:hover:to-indigo-700/50 transition-all duration-200"
                   >
                     <span className="font-mono font-bold text-sm sm:text-base text-indigo-700 dark:text-indigo-300">{tag}</span>
                     <Copy className="w-3 h-3 text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -227,7 +227,7 @@ export default function Room() {
           
           {/* Premium Sender Window */}
           <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 order-1 lg:order-1 rounded-3xl animate-fadeIn">
-            <CardHeader className="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-slate-200/50 dark:border-slate-600/50 rounded-t-3xl">
+            <CardHeader className="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-blue-900/30 dark:to-indigo-900/30 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
               <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
                 <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                   <Edit3 className="w-4 h-4 text-white" />
@@ -244,12 +244,12 @@ export default function Room() {
                   placeholder="Paste your clipboard content here..."
                   className="w-full h-52 sm:h-60 lg:h-72 p-4 sm:p-6 border-2 border-slate-300 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 resize-none text-sm sm:text-base leading-relaxed glass dark:glass-dark dark:text-white dark:placeholder-slate-400 transition-all duration-300 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-lg font-medium"
                 />
-                <div className="absolute bottom-4 right-4 text-xs font-medium text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-lg backdrop-blur-sm">
+                <div className="absolute bottom-4 right-4 text-xs font-medium text-slate-500 dark:text-blue-200 bg-white/80 dark:bg-blue-800/60 px-2 py-1 rounded-lg backdrop-blur-sm">
                   {senderText.length} chars
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 gap-4 sm:gap-0">
-                <div className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2 font-medium">
+                <div className="text-sm text-slate-600 dark:text-blue-200 flex items-center gap-2 font-medium">
                   <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
                   Ready to sync
                 </div>
@@ -288,7 +288,7 @@ export default function Room() {
           <div className="space-y-3 sm:space-y-4 order-2 lg:order-2">
             {/* Fetch Button */}
             <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 rounded-3xl animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-              <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20 border-b border-slate-200/50 dark:border-slate-600/50 rounded-t-3xl">
+              <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-blue-900/30 dark:to-teal-900/20 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
                 <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
                   <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
                     <Eye className="w-4 h-4 text-white" />
