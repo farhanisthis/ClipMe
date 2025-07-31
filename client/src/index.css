@@ -66,10 +66,36 @@
     font-family: 'Inter', system-ui, sans-serif;
     background-color: hsl(var(--page-background));
     transition: background-color 0.3s ease, color 0.3s ease;
+    overflow-x: hidden;
   }
   
   /* Smooth transitions for theme changes */
   * {
-    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    body {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
   }
 }

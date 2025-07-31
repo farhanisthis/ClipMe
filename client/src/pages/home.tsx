@@ -82,42 +82,49 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Animated Background */}
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden">
+      {/* Enhanced Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.05),transparent_50%)]"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.1),transparent_50%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.05),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_70%)] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.08),transparent_70%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.15),transparent_70%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.08),transparent_70%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.04),transparent_60%)]"></div>
       
-      {/* Floating particles */}
+      {/* Enhanced floating particles with different sizes and animations */}
       <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
       <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-400/30 rounded-full animate-bounce" style={{ animationDelay: '1s', animationDuration: '2s' }}></div>
       <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-pink-400/20 rounded-full animate-bounce" style={{ animationDelay: '2s', animationDuration: '4s' }}></div>
+      <div className="absolute top-3/4 left-1/3 w-1.5 h-1.5 bg-indigo-400/25 rounded-full animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }}></div>
+      <div className="absolute top-1/2 right-1/5 w-2.5 h-2.5 bg-cyan-400/15 rounded-full animate-ping" style={{ animationDelay: '1.5s', animationDuration: '3.5s' }}></div>
       
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4 z-10">
+      {/* Theme Toggle with enhanced styling */}
+      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
         <ThemeToggle />
       </div>
       
-      <div className="max-w-md w-full relative z-10">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <Logo size="md" showText={false} />
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-3">
+      <div className="max-w-md w-full relative z-10 mx-auto">
+        {/* Header Section with enhanced animations */}
+        <div className="text-center mb-8 sm:mb-10">
+          <div className="transform hover:scale-105 transition-transform duration-300">
+            <Logo size="md" showText={false} />
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
             ClipMe
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-lg">Share clipboard text across devices using simple room codes</p>
+          <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg leading-relaxed px-2">
+            Share clipboard text across devices using simple room codes
+          </p>
         </div>
 
-        {/* ClipTag Input Form */}
-        <Card className="shadow-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-          <CardContent className="p-6">
+        {/* ClipTag Input Form with enhanced mobile design */}
+        <Card className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1">
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmit}>
               <Label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-4 text-center">
                 Enter your 4-character ClipTag
               </Label>
               
-              {/* 4-Character Input Boxes */}
-              <div className="flex justify-center space-x-3 mb-4">
+              {/* 4-Character Input Boxes with enhanced mobile design */}
+              <div className="flex justify-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
                 {clipTag.map((char, index) => (
                   <Input
                     key={index}
@@ -129,17 +136,19 @@ export default function Home() {
                     onPaste={index === 0 ? handlePaste : undefined}
                     placeholder="?"
                     maxLength={1}
-                    className="w-14 h-14 text-2xl font-mono font-bold uppercase text-center border-2 border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary rounded-xl shadow-md dark:bg-gray-700 dark:text-white transition-all duration-200 hover:shadow-lg focus:shadow-lg"
+                    className="w-12 h-12 sm:w-14 sm:h-14 text-xl sm:text-2xl font-mono font-bold uppercase text-center border-2 border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-md dark:bg-gray-700 dark:text-white transition-all duration-300 hover:shadow-lg focus:shadow-xl hover:scale-105 focus:scale-105 active:scale-95"
                     autoComplete="off"
+                    inputMode="text"
                   />
                 ))}
               </div>
 
-              <div className="text-center mb-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="text-center mb-4 sm:mb-6">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                   Enter 4 alphanumeric characters (A-Z, 0-9)
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1">
+                  <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
                   Auto-joins room when complete
                 </p>
               </div>
@@ -156,47 +165,47 @@ export default function Home() {
               )}
             </form>
             
-            {/* QR Scanner Button for Mobile */}
+            {/* QR Scanner Button for Mobile with enhanced design */}
             {isMobile && (
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-600/50">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowQRScanner(true)}
-                  className="w-full flex items-center justify-center space-x-2 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                  className="w-full flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-solid transition-all duration-300 rounded-xl"
                 >
-                  <Scan className="w-4 h-4" />
-                  <span>Scan QR Code</span>
+                  <Scan className="w-5 h-5" />
+                  <span className="font-medium">Scan QR Code</span>
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Features Section */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300">
-            <CardContent className="p-4">
+        {/* Enhanced Features Section */}
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center shadow-md">
-                  <Smartphone className="w-4 h-4 text-white" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
+                  <Smartphone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Cross-Device</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">Works on any device</p>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Cross-Device</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Works on any device</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300">
-            <CardContent className="p-4">
+          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-md">
-                  <Shield className="w-4 h-4 text-white" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
+                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Secure</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">No account required</p>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Secure</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">No account required</p>
                 </div>
               </div>
             </CardContent>
