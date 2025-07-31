@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, ClipboardCopy, Edit3, Eye, RefreshCw, Download, Copy, QrCode } from "lucide-react";
 import QRModal from "@/components/qr-modal";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface ClipboardData {
   content: string;
@@ -124,12 +125,12 @@ export default function Room() {
 
   if (!tag || tag.length !== 4 || !/^[A-Z0-9]{4}$/.test(tag)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="w-full max-w-md mx-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Card className="w-full max-w-md mx-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
           <CardContent className="pt-6">
             <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">Invalid ClipTag</h1>
-              <p className="text-gray-600 mb-6">ClipTag must be 4 alphanumeric characters.</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Invalid ClipTag</h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">ClipTag must be 4 alphanumeric characters.</p>
               <Button onClick={() => setLocation("/")} className="bg-primary text-white">
                 Go Home
               </Button>
@@ -141,16 +142,16 @@ export default function Room() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-4">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocation("/")}
-              className="p-2 text-gray-500 hover:text-gray-700"
+              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -159,20 +160,23 @@ export default function Room() {
                 <ClipboardCopy className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">ClipSync</h1>
-                <p className="text-sm text-gray-600">ClipTag: <span className="font-mono font-medium">{tag}</span></p>
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">ClipSync</h1>
+                <p className="text-sm text-gray-600 dark:text-gray-300">ClipTag: <span className="font-mono font-medium">{tag}</span></p>
               </div>
             </div>
           </div>
           
-          <Button
-            variant="outline"
-            onClick={() => setShowQRModal(true)}
-            className="flex items-center space-x-2"
-          >
-            <QrCode className="w-4 h-4" />
-            <span className="font-medium">Show QR Code</span>
-          </Button>
+          <div className="flex items-center space-x-2">
+            <ThemeToggle />
+            <Button
+              variant="outline"
+              onClick={() => setShowQRModal(true)}
+              className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+            >
+              <QrCode className="w-4 h-4" />
+              <span className="font-medium">Show QR Code</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -181,23 +185,23 @@ export default function Room() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Sender Window */}
-          <Card className="shadow-lg border border-gray-200">
-            <CardHeader className="bg-gray-50">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+          <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <CardHeader className="bg-gray-50 dark:bg-gray-700">
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                 <Edit3 className="w-5 h-5 mr-2 text-primary" />
                 Sender Window
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Paste or type your text here</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Paste or type your text here</p>
             </CardHeader>
             <CardContent className="p-6">
               <Textarea
                 value={senderText}
                 onChange={(e) => setSenderText(e.target.value)}
                 placeholder="Paste your clipboard content here..."
-                className="w-full h-64 p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm leading-relaxed"
+                className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-sm leading-relaxed dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
               />
               <div className="flex items-center justify-between mt-4">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   {senderText.length} characters
                 </div>
                 <Button
@@ -219,13 +223,13 @@ export default function Room() {
           {/* Content History Window */}
           <div className="space-y-4">
             {/* Fetch Button */}
-            <Card className="shadow-lg border border-gray-200">
-              <CardHeader className="bg-gray-50">
-                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Eye className="w-5 h-5 mr-2 text-green-600" />
+            <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <CardHeader className="bg-gray-50 dark:bg-gray-700">
+                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                  <Eye className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
                   Content History
                 </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">Fetched content will appear here</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">Fetched content will appear here</p>
               </CardHeader>
               <CardContent className="p-6">
                 <Button
@@ -245,9 +249,9 @@ export default function Room() {
 
             {/* Content History */}
             {contentHistory.length === 0 ? (
-              <Card className="shadow-lg border border-gray-200">
+              <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <CardContent className="p-6">
-                  <div className="text-center text-gray-500">
+                  <div className="text-center text-gray-500 dark:text-gray-400">
                     No content fetched yet. Click "Fetch Latest Content" to retrieve clipboard content.
                   </div>
                 </CardContent>
@@ -255,21 +259,21 @@ export default function Room() {
             ) : (
               <div className="space-y-3">
                 {contentHistory.map((item, index) => (
-                  <Card key={`${item.updatedAt}-${index}`} className="shadow-lg border border-gray-200">
+                  <Card key={`${item.updatedAt}-${index}`} className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <CardContent className="p-4">
                       <div className="space-y-3">
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm leading-relaxed text-gray-700 max-h-32 overflow-y-auto">
+                        <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300 max-h-32 overflow-y-auto">
                           {item.content}
                         </div>
                         <div className="flex items-center justify-between">
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
                             Fetched: {formatRelativeTime(item.updatedAt)}
                           </div>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleCopyToClipboard(item.content)}
-                            className="px-3 py-1 flex items-center space-x-1"
+                            className="px-3 py-1 flex items-center space-x-1 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                           >
                             <Copy className="w-3 h-3" />
                             <span>Copy</span>

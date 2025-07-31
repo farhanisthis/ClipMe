@@ -39,31 +39,31 @@ export default function QRModal({ isOpen, onClose, clipTag }: QRModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm w-full p-6">
+      <DialogContent className="max-w-sm w-full p-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <DialogHeader className="flex items-center justify-between mb-6">
-          <DialogTitle className="text-xl font-semibold text-gray-900">Share Room</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-white">Share Room</DialogTitle>
         </DialogHeader>
         
         <div className="text-center">
-          <div className="bg-gray-50 rounded-xl p-6 mb-4">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 mb-4">
             <div className="flex justify-center">
               <QRCodeSVG
                 value={roomUrl}
                 size={128}
                 level="M"
                 includeMargin={true}
-                className="border-2 border-gray-300 rounded-lg"
+                className="border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white p-2"
               />
             </div>
           </div>
           
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Scan this QR code to open the same room on another device
             </p>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-500 mb-1">Room URL:</p>
-              <code className="text-sm font-mono text-gray-800 break-all">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Room URL:</p>
+              <code className="text-sm font-mono text-gray-800 dark:text-gray-200 break-all">
                 {roomUrl}
               </code>
             </div>

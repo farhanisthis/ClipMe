@@ -23,6 +23,10 @@
   --destructive-foreground: hsl(60, 9.1%, 97.8%);
   --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
+  
+  /* Light mode page background */
+  --page-background: hsl(210, 20%, 98%);
+  --content-background: hsl(0, 0%, 100%);
 }
 
 .dark {
@@ -32,7 +36,7 @@
   --muted-foreground: hsl(240, 5%, 64.9%);
   --popover: hsl(240, 10%, 3.9%);
   --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
+  --card: hsl(240, 5%, 7%);
   --card-foreground: hsl(0, 0%, 98%);
   --border: hsl(240, 3.7%, 15.9%);
   --input: hsl(240, 3.7%, 15.9%);
@@ -46,6 +50,10 @@
   --destructive-foreground: hsl(0, 0%, 98%);
   --ring: hsl(240, 4.9%, 83.9%);
   --radius: 0.5rem;
+  
+  /* Dark mode page background */
+  --page-background: hsl(240, 10%, 3.9%);
+  --content-background: hsl(240, 5%, 7%);
 }
 
 @layer base {
@@ -54,7 +62,14 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
     font-family: 'Inter', system-ui, sans-serif;
+    background-color: hsl(var(--page-background));
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Smooth transitions for theme changes */
+  * {
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
   }
 }

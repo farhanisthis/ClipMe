@@ -8,6 +8,28 @@ ClipSync is a web application that allows users to share clipboard text across d
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Updates (July 31, 2025)
+
+### Content History Feature
+- Added persistent content history that keeps all fetched content visible
+- Each content item has its own container with individual copy buttons
+- Content history prevents duplication of identical content
+- Improved user experience for tracking multiple clipboard syncs
+
+### Dark Mode Implementation
+- Full dark mode support with system preference detection
+- Theme toggle button in top-right corner of all pages
+- Smooth transitions between light and dark themes
+- Improved contrast and visibility in dark mode
+- Dark mode styling for all components including cards, inputs, and modals
+
+### Mobile QR Scanner
+- QR code scanner for mobile devices only
+- Camera access with back-facing camera preference
+- Manual ClipTag entry fallback for non-mobile devices
+- Visual scanning guide with corner indicators
+- Proper error handling for camera permissions
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -49,7 +71,10 @@ Preferred communication style: Simple, everyday language.
 - **404 Page**: Error handling for invalid routes
 
 ### UI Components
-- **QR Code Modal**: Generates QR codes for easy room sharing
+- **QR Code Modal**: Generates QR codes for easy room sharing with dark mode support
+- **QR Scanner**: Mobile-only camera scanner for ClipTags with manual fallback
+- **Theme Toggle**: Light/dark mode switcher with system preference detection
+- **Content History**: Persistent list of fetched content with individual copy buttons
 - **Toast Notifications**: User feedback for actions and errors
 - **Responsive Design**: Mobile-first approach with Tailwind breakpoints
 
