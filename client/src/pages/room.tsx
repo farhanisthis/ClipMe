@@ -188,14 +188,20 @@ export default function Room() {
             >
               <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+            <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
               <Logo size="sm" showText={false} className="mb-0 flex-shrink-0" />
               <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent truncate">ClipMe</h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
-                  <span className="hidden sm:inline">ClipTag: </span>
-                  <span className="font-mono font-medium bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-xs sm:text-sm">{tag}</span>
-                </p>
+                <h1 className="text-lg sm:text-xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent truncate">ClipMe</h1>
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline text-sm text-slate-600 dark:text-slate-300 font-medium">Room:</span>
+                  <button
+                    onClick={() => handleCopyToClipboard(tag)}
+                    className="group flex items-center gap-1 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 px-2 py-1 rounded-lg hover:from-indigo-200 hover:to-purple-200 dark:hover:from-indigo-800/40 dark:hover:to-purple-800/40 transition-all duration-200"
+                  >
+                    <span className="font-mono font-bold text-sm sm:text-base text-indigo-700 dark:text-indigo-300">{tag}</span>
+                    <Copy className="w-3 h-3 text-indigo-600 dark:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -219,33 +225,40 @@ export default function Room() {
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           
-          {/* Enhanced Sender Window */}
-          <Card className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300 order-1 lg:order-1">
-            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50/50 dark:from-gray-700 dark:to-blue-900/20 border-b border-gray-200/50 dark:border-gray-600/50">
-              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-primary" />
+          {/* Premium Sender Window */}
+          <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 order-1 lg:order-1 rounded-3xl animate-fadeIn">
+            <CardHeader className="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-slate-200/50 dark:border-slate-600/50 rounded-t-3xl">
+              <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                  <Edit3 className="w-4 h-4 text-white" />
+                </div>
                 <span>Sender Window</span>
               </CardTitle>
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">Paste or type your text here</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">Paste or type your text here</p>
             </CardHeader>
-            <CardContent className="p-3 sm:p-4 lg:p-6">
-              <Textarea
-                value={senderText}
-                onChange={(e) => setSenderText(e.target.value)}
-                placeholder="Paste your clipboard content here..."
-                className="w-full h-48 sm:h-56 lg:h-64 p-3 sm:p-4 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:border-transparent resize-none text-sm leading-relaxed dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 transition-all duration-200 hover:border-gray-400 dark:hover:border-gray-500"
-              />
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 sm:mt-4 gap-3 sm:gap-0">
-                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                  <span className="inline-block w-2 h-2 bg-blue-400 rounded-full"></span>
-                  {senderText.length} characters
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <div className="relative">
+                <Textarea
+                  value={senderText}
+                  onChange={(e) => setSenderText(e.target.value)}
+                  placeholder="Paste your clipboard content here..."
+                  className="w-full h-52 sm:h-60 lg:h-72 p-4 sm:p-6 border-2 border-slate-300 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 resize-none text-sm sm:text-base leading-relaxed glass dark:glass-dark dark:text-white dark:placeholder-slate-400 transition-all duration-300 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-lg font-medium"
+                />
+                <div className="absolute bottom-4 right-4 text-xs font-medium text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-lg backdrop-blur-sm">
+                  {senderText.length} chars
                 </div>
-                <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
+              </div>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 gap-4 sm:gap-0">
+                <div className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2 font-medium">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                  Ready to sync
+                </div>
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-3 sm:space-y-0 sm:space-x-3">
                   <Button
                     onClick={handlePasteAndSync}
                     disabled={syncMutation.isPending}
                     variant="outline"
-                    className="w-full sm:w-auto px-3 sm:px-4 py-2 flex items-center justify-center space-x-2 border-green-300 text-green-700 hover:bg-green-50 dark:border-green-600 dark:text-green-400 dark:hover:bg-green-900/20 transition-all duration-200 hover:scale-105 text-sm"
+                    className="w-full sm:w-auto px-4 py-3 flex items-center justify-center space-x-2 border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-900/20 transition-all duration-300 hover:scale-105 hover:shadow-lg font-semibold rounded-xl"
                   >
                     {syncMutation.isPending ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
@@ -257,14 +270,14 @@ export default function Room() {
                   <Button
                     onClick={handleSync}
                     disabled={!senderText.trim() || syncMutation.isPending}
-                    className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-primary text-white font-medium hover:bg-blue-600 flex items-center justify-center space-x-2 transition-all duration-200 hover:scale-105 text-sm"
+                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-xl rounded-xl"
                   >
                     {syncMutation.isPending ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
                       <RefreshCw className="w-4 h-4" />
                     )}
-                    <span>Sync</span>
+                    <span>Sync Now</span>
                   </Button>
                 </div>
               </div>
@@ -274,24 +287,26 @@ export default function Room() {
           {/* Enhanced Content History Window */}
           <div className="space-y-3 sm:space-y-4 order-2 lg:order-2">
             {/* Fetch Button */}
-            <Card className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-gray-50 to-green-50/50 dark:from-gray-700 dark:to-green-900/20 border-b border-gray-200/50 dark:border-gray-600/50">
-                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                  <Eye className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-green-600 dark:text-green-400" />
+            <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 rounded-3xl animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+              <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-emerald-900/20 dark:to-teal-900/20 border-b border-slate-200/50 dark:border-slate-600/50 rounded-t-3xl">
+                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                    <Eye className="w-4 h-4 text-white" />
+                  </div>
                   <span>Content History</span>
                 </CardTitle>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mt-1">Fetched content will appear here</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">Fetched content will appear here</p>
               </CardHeader>
-              <CardContent className="p-3 sm:p-4 lg:p-6">
+              <CardContent className="p-4 sm:p-6 lg:p-8">
                 <Button
                   onClick={handleFetch}
                   disabled={fetchMutation.isPending}
-                  className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-green-600 text-white font-medium hover:bg-green-700 flex items-center justify-center space-x-2 transition-all duration-200 hover:scale-105 text-sm sm:text-base rounded-xl"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-xl text-base rounded-2xl"
                 >
                   {fetchMutation.isPending ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <RefreshCw className="w-5 h-5 animate-spin" />
                   ) : (
-                    <Download className="w-4 h-4" />
+                    <Download className="w-5 h-5" />
                   )}
                   <span>Fetch Latest Content</span>
                 </Button>

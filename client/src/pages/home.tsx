@@ -107,50 +107,57 @@ export default function Home() {
           <div className="transform hover:scale-105 transition-transform duration-300">
             <Logo size="md" showText={false} />
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 dark:from-blue-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-3 sm:mb-4 animate-pulse">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-emerald-600 dark:from-indigo-400 dark:via-purple-400 dark:to-emerald-400 bg-clip-text text-transparent mb-4 sm:mb-6 tracking-tight">
             ClipMe
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-base sm:text-lg leading-relaxed px-2">
-            Share clipboard text across devices using simple room codes
+          <p className="text-slate-600 dark:text-slate-300 text-lg sm:text-xl leading-relaxed px-2 font-medium">
+            Sync your clipboard in seconds — no login, no friction
           </p>
         </div>
 
-        {/* ClipTag Input Form with enhanced mobile design */}
-        <Card className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-1">
-          <CardContent className="p-4 sm:p-6">
-            <form onSubmit={handleSubmit}>
-              <Label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-4 text-center">
+        {/* Premium ClipTag Input Form */}
+        <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 animate-fadeIn rounded-3xl">
+          <CardContent className="p-6 sm:p-8">
+            <form onSubmit={handleSubmit} className="animate-slideIn">
+              <Label className="block text-base font-semibold text-gray-800 dark:text-gray-100 mb-6 text-center">
                 Enter your 4-character ClipTag
               </Label>
               
-              {/* 4-Character Input Boxes with enhanced mobile design */}
-              <div className="flex justify-center space-x-2 sm:space-x-3 mb-4 sm:mb-6">
+              {/* Premium PIN-style Input Boxes */}
+              <div className="flex justify-center space-x-3 sm:space-x-4 mb-6 sm:mb-8">
                 {clipTag.map((char, index) => (
-                  <Input
-                    key={index}
-                    ref={inputRefs[index]}
-                    type="text"
-                    value={char}
-                    onChange={(e) => handleInputChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={index === 0 ? handlePaste : undefined}
-                    placeholder="?"
-                    maxLength={1}
-                    className="w-12 h-12 sm:w-14 sm:h-14 text-xl sm:text-2xl font-mono font-bold uppercase text-center border-2 border-gray-300 dark:border-gray-600 focus:border-primary dark:focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl shadow-md dark:bg-gray-700 dark:text-white transition-all duration-300 hover:shadow-lg focus:shadow-xl hover:scale-105 focus:scale-105 active:scale-95"
-                    autoComplete="off"
-                    inputMode="text"
-                  />
+                  <div key={index} className="relative">
+                    <Input
+                      ref={inputRefs[index]}
+                      type="text"
+                      value={char}
+                      onChange={(e) => handleInputChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      onPaste={index === 0 ? handlePaste : undefined}
+                      placeholder="?"
+                      maxLength={1}
+                      className="w-14 h-14 sm:w-16 sm:h-16 text-2xl sm:text-3xl font-mono font-black uppercase text-center border-2 border-slate-300 dark:border-slate-600 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/20 rounded-2xl shadow-lg glass dark:glass-dark dark:text-white transition-all duration-300 hover:shadow-xl focus:shadow-2xl hover:scale-110 focus:scale-110 active:scale-95 focus:animate-glow"
+                      autoComplete="off"
+                      inputMode="text"
+                      style={{
+                        background: char ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))' : undefined
+                      }}
+                    />
+                    {char && (
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 pointer-events-none animate-pulse"></div>
+                    )}
+                  </div>
                 ))}
               </div>
 
-              <div className="text-center mb-4 sm:mb-6">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+              <div className="text-center mb-6 sm:mb-8">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                   Enter 4 alphanumeric characters (A-Z, 0-9)
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-center gap-1">
-                  <span className="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                  Auto-joins room when complete
-                </p>
+                <div className="flex items-center justify-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">Auto-joins room when complete</span>
+                </div>
               </div>
 
               {/* Manual Submit Button (hidden when all filled) */}
@@ -165,47 +172,47 @@ export default function Home() {
               )}
             </form>
             
-            {/* QR Scanner Button for Mobile with enhanced design */}
+            {/* Premium QR Scanner Button for Mobile */}
             {isMobile && (
-              <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-gray-600/50">
+              <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-600/50">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setShowQRScanner(true)}
-                  className="w-full flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-solid transition-all duration-300 rounded-xl"
+                  className="w-full flex items-center justify-center space-x-3 py-4 border-2 border-dashed border-indigo-300 dark:border-indigo-500 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-solid hover:shadow-lg hover:scale-105 transition-all duration-300 rounded-2xl font-semibold"
                 >
                   <Scan className="w-5 h-5" />
-                  <span className="font-medium">Scan QR Code</span>
+                  <span>Scan QR Code</span>
                 </Button>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Enhanced Features Section */}
-        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
-                  <Smartphone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+        {/* Premium Features Section */}
+        <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+          <Card className="border-0 glass dark:glass-dark hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 group rounded-2xl">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                  <Smartphone className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Cross-Device</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Works on any device</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-1">Cross-Device Sync</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">Works seamlessly across all devices</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border border-gray-200/50 dark:border-gray-700/50 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 transform hover:scale-105 hover:shadow-xl group">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110">
-                  <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          <Card className="border-0 glass dark:glass-dark hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 group rounded-2xl">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-indigo-400 via-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-xl group-hover:shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3">
+                  <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">Secure</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">No account required</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-1">Private & Secure</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">No registration or login required</p>
                 </div>
               </div>
             </CardContent>
