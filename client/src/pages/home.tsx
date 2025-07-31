@@ -13,9 +13,17 @@ export default function Home() {
   const [clipTag, setClipTag] = useState(["", "", "", ""]);
   const [, setLocation] = useLocation();
   const [showQRScanner, setShowQRScanner] = useState(false);
-  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
-  
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const inputRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
+
+  const isMobile =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
 
   // Auto-focus first input on component mount
   useEffect(() => {
@@ -32,8 +40,8 @@ export default function Home() {
 
   const handleInputChange = (index: number, value: string) => {
     // Only allow alphanumeric characters
-    const cleanValue = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
+    const cleanValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
     if (cleanValue.length <= 1) {
       const newClipTag = [...clipTag];
       newClipTag[index] = cleanValue;
@@ -45,7 +53,11 @@ export default function Home() {
       }
 
       // Auto-submit when all 4 characters are entered
-      if (index === 3 && cleanValue && newClipTag.every(char => char !== "")) {
+      if (
+        index === 3 &&
+        cleanValue &&
+        newClipTag.every((char) => char !== "")
+      ) {
         const fullTag = newClipTag.join("");
         setTimeout(() => setLocation(`/room/${fullTag}`), 100);
       }
@@ -54,15 +66,19 @@ export default function Home() {
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
     // Handle backspace to move to previous input
-    if (e.key === 'Backspace' && !clipTag[index] && index > 0) {
+    if (e.key === "Backspace" && !clipTag[index] && index > 0) {
       inputRefs[index - 1].current?.focus();
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
     e.preventDefault();
-    const pastedText = e.clipboardData.getData('text').toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4);
-    
+    const pastedText = e.clipboardData
+      .getData("text")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .substring(0, 4);
+
     if (pastedText.length > 0) {
       const newClipTag = ["", "", "", ""];
       for (let i = 0; i < Math.min(pastedText.length, 4); i++) {
@@ -82,25 +98,40 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden theme-transition">
       {/* Enhanced Animated Background with better dark blue tones */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-slate-900 dark:to-indigo-950"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_70%)] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(96,165,250,0.12),transparent_70%)]"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.15),transparent_70%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.10),transparent_70%)]"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.08),transparent_60%)]"></div>
-      
+
       {/* Enhanced floating particles with different sizes and animations */}
-      <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/20 rounded-full animate-bounce" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
-      <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-400/30 rounded-full animate-bounce" style={{ animationDelay: '1s', animationDuration: '2s' }}></div>
-      <div className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-pink-400/20 rounded-full animate-bounce" style={{ animationDelay: '2s', animationDuration: '4s' }}></div>
-      <div className="absolute top-3/4 left-1/3 w-1.5 h-1.5 bg-indigo-400/25 rounded-full animate-pulse" style={{ animationDelay: '0.5s', animationDuration: '2.5s' }}></div>
-      <div className="absolute top-1/2 right-1/5 w-2.5 h-2.5 bg-cyan-400/15 rounded-full animate-ping" style={{ animationDelay: '1.5s', animationDuration: '3.5s' }}></div>
-      
+      <div
+        className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/20 rounded-full animate-bounce"
+        style={{ animationDelay: "0s", animationDuration: "3s" }}
+      ></div>
+      <div
+        className="absolute top-1/3 right-1/3 w-1 h-1 bg-purple-400/30 rounded-full animate-bounce"
+        style={{ animationDelay: "1s", animationDuration: "2s" }}
+      ></div>
+      <div
+        className="absolute bottom-1/4 right-1/4 w-3 h-3 bg-pink-400/20 rounded-full animate-bounce"
+        style={{ animationDelay: "2s", animationDuration: "4s" }}
+      ></div>
+      <div
+        className="absolute top-3/4 left-1/3 w-1.5 h-1.5 bg-indigo-400/25 rounded-full animate-pulse"
+        style={{ animationDelay: "0.5s", animationDuration: "2.5s" }}
+      ></div>
+      <div
+        className="absolute top-1/2 right-1/5 w-2.5 h-2.5 bg-cyan-400/15 rounded-full animate-ping"
+        style={{ animationDelay: "1.5s", animationDuration: "3.5s" }}
+      ></div>
+
       {/* Theme Toggle with enhanced styling */}
       <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
         <ThemeToggle />
       </div>
-      
+
       <div className="max-w-md w-full relative z-10 mx-auto">
         {/* Header Section with enhanced animations */}
         <div className="text-center mb-8 sm:mb-10">
@@ -122,7 +153,7 @@ export default function Home() {
               <Label className="block text-base font-semibold text-gray-800 dark:text-gray-100 mb-6 text-center">
                 Enter your 4-character ClipTag
               </Label>
-              
+
               {/* Premium PIN-style Input Boxes */}
               <div className="flex justify-center space-x-3 sm:space-x-4 mb-6 sm:mb-8">
                 {clipTag.map((char, index) => (
@@ -140,7 +171,9 @@ export default function Home() {
                       autoComplete="off"
                       inputMode="text"
                       style={{
-                        background: char ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))' : undefined
+                        background: char
+                          ? "linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))"
+                          : undefined,
                       }}
                     />
                     {char && (
@@ -156,22 +189,24 @@ export default function Home() {
                 </p>
                 <div className="flex items-center justify-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                  <span className="font-medium">Auto-joins room when complete</span>
+                  <span className="font-medium">
+                    Auto-joins room when complete
+                  </span>
                 </div>
               </div>
 
               {/* Manual Submit Button (hidden when all filled) */}
-              {clipTag.some(char => char === "") && (
-                <Button 
+              {clipTag.some((char) => char === "") && (
+                <Button
                   type="submit"
                   className="w-full px-6 py-3 bg-primary text-white font-medium hover:bg-blue-600 transition-all duration-200"
-                  disabled={clipTag.some(char => char === "")}
+                  disabled={clipTag.some((char) => char === "")}
                 >
                   Join Room
                 </Button>
               )}
             </form>
-            
+
             {/* Premium QR Scanner Button for Mobile */}
             {isMobile && (
               <div className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-600/50">
@@ -190,7 +225,10 @@ export default function Home() {
         </Card>
 
         {/* Premium Features Section */}
-        <div className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fadeIn" style={{ animationDelay: '0.3s' }}>
+        <div
+          className="mt-8 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 animate-fadeIn"
+          style={{ animationDelay: "0.3s" }}
+        >
           <Card className="border-0 glass dark:glass-dark hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 group rounded-2xl">
             <CardContent className="p-4 sm:p-6">
               <div className="flex items-center space-x-4">
@@ -198,8 +236,12 @@ export default function Home() {
                   <Smartphone className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-1">Cross-Device Sync</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">Works seamlessly across all devices</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-1">
+                    Cross-Device Sync
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+                    Works seamlessly across all devices
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -211,14 +253,18 @@ export default function Home() {
                   <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-1">Private & Secure</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">No registration or login required</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base mb-1">
+                    Private & Secure
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+                    No registration or login required
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-        
+
         {/* QR Scanner Modal */}
         <QRScanner
           isOpen={showQRScanner}
