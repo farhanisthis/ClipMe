@@ -82,7 +82,7 @@ export default function QRScanner({ isOpen, onClose }: QRScannerProps) {
     // Get image data for QR code detection
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     
-    // Simple URL pattern detection for ClipSync URLs
+    // Simple URL pattern detection for ClipMe URLs
     // In a real implementation, you'd use a QR code library like jsQR
     // For now, we'll simulate QR detection with a manual input fallback
     
@@ -168,7 +168,7 @@ export default function QRScanner({ isOpen, onClose }: QRScannerProps) {
           <div className="p-4 bg-white dark:bg-gray-800">
             <div className="text-center mb-4">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Point your camera at a ClipSync QR code
+                Point your camera at a ClipMe QR code
               </p>
             </div>
             

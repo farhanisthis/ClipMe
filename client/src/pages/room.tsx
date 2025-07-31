@@ -9,6 +9,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ArrowLeft, ClipboardCopy, Edit3, Eye, RefreshCw, Download, Copy, QrCode } from "lucide-react";
 import QRModal from "@/components/qr-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Logo } from "@/components/logo";
 
 interface ClipboardData {
   content: string;
@@ -125,8 +126,9 @@ export default function Room() {
 
   if (!tag || tag.length !== 4 || !/^[A-Z0-9]{4}$/.test(tag)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <Card className="w-full max-w-md mx-4 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+      <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20"></div>
+        <Card className="w-full max-w-md mx-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 relative z-10">
           <CardContent className="pt-6">
             <div className="text-center">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Invalid ClipTag</h1>
@@ -142,9 +144,13 @@ export default function Room() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_20%_80%,rgba(120,119,198,0.04),transparent_50%)]"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.08),transparent_50%)] dark:bg-[radial-gradient(circle_at_80%_20%,rgba(255,119,198,0.04),transparent_50%)]"></div>
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4">
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 px-4 py-4 relative z-10">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button
@@ -156,11 +162,9 @@ export default function Room() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <ClipboardCopy className="w-4 h-4 text-white" />
-              </div>
+              <Logo size="sm" showText={false} className="mb-0" />
               <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">ClipSync</h1>
+                <h1 className="text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">ClipMe</h1>
                 <p className="text-sm text-gray-600 dark:text-gray-300">ClipTag: <span className="font-mono font-medium">{tag}</span></p>
               </div>
             </div>
@@ -171,7 +175,7 @@ export default function Room() {
             <Button
               variant="outline"
               onClick={() => setShowQRModal(true)}
-              className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+              className="flex items-center space-x-2 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
             >
               <QrCode className="w-4 h-4" />
               <span className="font-medium">Show QR Code</span>
@@ -181,11 +185,11 @@ export default function Room() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Sender Window */}
-          <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <Card className="shadow-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
             <CardHeader className="bg-gray-50 dark:bg-gray-700">
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                 <Edit3 className="w-5 h-5 mr-2 text-primary" />
@@ -223,7 +227,7 @@ export default function Room() {
           {/* Content History Window */}
           <div className="space-y-4">
             {/* Fetch Button */}
-            <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <Card className="shadow-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
               <CardHeader className="bg-gray-50 dark:bg-gray-700">
                 <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
                   <Eye className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
@@ -249,7 +253,7 @@ export default function Room() {
 
             {/* Content History */}
             {contentHistory.length === 0 ? (
-              <Card className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <Card className="shadow-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
                 <CardContent className="p-6">
                   <div className="text-center text-gray-500 dark:text-gray-400">
                     No content fetched yet. Click "Fetch Latest Content" to retrieve clipboard content.
@@ -259,7 +263,7 @@ export default function Room() {
             ) : (
               <div className="space-y-3">
                 {contentHistory.map((item, index) => (
-                  <Card key={`${item.updatedAt}-${index}`} className="shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <Card key={`${item.updatedAt}-${index}`} className="shadow-xl border border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
                     <CardContent className="p-4">
                       <div className="space-y-3">
                         <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-3 text-sm leading-relaxed text-gray-700 dark:text-gray-300 max-h-32 overflow-y-auto">

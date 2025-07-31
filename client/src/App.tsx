@@ -20,7 +20,7 @@ function Router() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="clipsync-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="clipme-ui-theme">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />

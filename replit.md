@@ -1,8 +1,8 @@
-# ClipSync Application
+# ClipMe Application
 
 ## Overview
 
-ClipSync is a web application that allows users to share clipboard text across devices using simple 4-character codes called "ClipTags". Users can enter a ClipTag to access a shared clipboard space where they can sync text content between different devices.
+ClipMe is a web application that allows users to share clipboard text across devices using simple 4-character codes called "ClipTags". Users can enter a ClipTag to access a shared clipboard space where they can sync text content between different devices.
 
 ## User Preferences
 
@@ -29,6 +29,14 @@ Preferred communication style: Simple, everyday language.
 - Manual ClipTag entry fallback for non-mobile devices
 - Visual scanning guide with corner indicators
 - Proper error handling for camera permissions
+
+### Brand Enhancement (July 31, 2025)
+- Renamed from "ClipSync" to "ClipMe" with complete rebranding
+- Custom gradient logo with glassmorphism effects
+- Beautiful animated backgrounds with radial gradients
+- Floating particle animations on home page
+- Glassmorphism UI design with backdrop blur effects
+- Gradient text styling for brand name throughout app
 
 ## System Architecture
 
