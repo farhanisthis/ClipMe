@@ -1,4 +1,4 @@
-# ClipShare Connect
+# ClipMe - Professional Clipboard Sharing
 
 A professional, modern clipboard sharing application that enables seamless content sharing across devices using simple 4-character room codes.
 
@@ -38,8 +38,8 @@ A professional, modern clipboard sharing application that enables seamless conte
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
-   cd ClipShareConnect
+   git clone https://github.com/farhanisthis/clipme.git
+   cd clipme
    ```
 
 2. **Install dependencies**
@@ -190,3 +190,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Made with ❤️ for seamless clipboard sharing across devices.
+npm run dev
+>>>>>>> da61dcc1038304633a8882f868312112d6b3fc92
