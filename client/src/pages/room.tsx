@@ -20,6 +20,7 @@ export default function Room() {
   const { toast } = useToast();
   const [senderText, setSenderText] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
+  const [contentHistory, setContentHistory] = useState<ClipboardData[]>([]);
   
   const tag = params?.tag?.toUpperCase() || "";
 
@@ -54,14 +55,22 @@ export default function Room() {
 
   // Fetch mutation
   const fetchMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<ClipboardData> => {
       // Invalidate first to clear any stale cache, then fetch fresh data
       queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
       return queryClient.fetchQuery({
         queryKey: ["/api/clip", tag],
-      });
+      }) as Promise<ClipboardData>;
     },
-    onSuccess: () => {
+    onSuccess: (data: ClipboardData) => {
+      // Add new content to history if it's different from the last one
+      setContentHistory(prev => {
+        const lastContent = prev[prev.length - 1];
+        if (!lastContent || lastContent.content !== data.content) {
+          return [...prev, data];
+        }
+        return prev;
+      });
       toast({
         title: "Success",
         description: "Content fetched successfully!",
@@ -86,21 +95,19 @@ export default function Room() {
     fetchMutation.mutate();
   };
 
-  const handleCopyToClipboard = async () => {
-    if (clipboardData?.content) {
-      try {
-        await navigator.clipboard.writeText(clipboardData.content);
-        toast({
-          title: "Success",
-          description: "Content copied to clipboard!",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to copy to clipboard.",
-          variant: "destructive",
-        });
-      }
+  const handleCopyToClipboard = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast({
+        title: "Success",
+        description: "Content copied to clipboard!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -209,51 +216,72 @@ export default function Room() {
             </CardContent>
           </Card>
 
-          {/* Receiver Window */}
-          <Card className="shadow-lg border border-gray-200">
-            <CardHeader className="bg-gray-50">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
-                <Eye className="w-5 h-5 mr-2 text-green-600" />
-                Receiver Window
-              </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">Latest content from the server</p>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="w-full h-64 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm leading-relaxed text-gray-700 overflow-y-auto">
-                {clipboardData?.content || "No content available. Click 'Fetch' to retrieve the latest clipboard content."}
-              </div>
-              <div className="flex items-center justify-between mt-4">
-                <div className="text-sm text-gray-500">
-                  {clipboardData?.updatedAt && (
-                    <>Last updated: {formatRelativeTime(clipboardData.updatedAt)}</>
+          {/* Content History Window */}
+          <div className="space-y-4">
+            {/* Fetch Button */}
+            <Card className="shadow-lg border border-gray-200">
+              <CardHeader className="bg-gray-50">
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Eye className="w-5 h-5 mr-2 text-green-600" />
+                  Content History
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">Fetched content will appear here</p>
+              </CardHeader>
+              <CardContent className="p-6">
+                <Button
+                  onClick={handleFetch}
+                  disabled={fetchMutation.isPending}
+                  className="w-full px-6 py-3 bg-green-600 text-white font-medium hover:bg-green-700 flex items-center justify-center space-x-2"
+                >
+                  {fetchMutation.isPending ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
                   )}
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleCopyToClipboard}
-                    disabled={!clipboardData?.content}
-                    className="px-4 py-2 flex items-center space-x-2"
-                  >
-                    <Copy className="w-4 h-4" />
-                    <span>Copy</span>
-                  </Button>
-                  <Button
-                    onClick={handleFetch}
-                    disabled={fetchMutation.isPending}
-                    className="px-6 py-2 bg-green-600 text-white font-medium hover:bg-green-700 flex items-center space-x-2"
-                  >
-                    {fetchMutation.isPending ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Download className="w-4 h-4" />
-                    )}
-                    <span>Fetch</span>
-                  </Button>
-                </div>
+                  <span>Fetch Latest Content</span>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Content History */}
+            {contentHistory.length === 0 ? (
+              <Card className="shadow-lg border border-gray-200">
+                <CardContent className="p-6">
+                  <div className="text-center text-gray-500">
+                    No content fetched yet. Click "Fetch Latest Content" to retrieve clipboard content.
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {contentHistory.map((item, index) => (
+                  <Card key={`${item.updatedAt}-${index}`} className="shadow-lg border border-gray-200">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm leading-relaxed text-gray-700 max-h-32 overflow-y-auto">
+                          {item.content}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-gray-500">
+                            Fetched: {formatRelativeTime(item.updatedAt)}
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleCopyToClipboard(item.content)}
+                            className="px-3 py-1 flex items-center space-x-1"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>Copy</span>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </div>
       </main>
 
