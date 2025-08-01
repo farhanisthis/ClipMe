@@ -191,4 +191,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Made with ❤️ for seamless clipboard sharing across devices.
 npm run dev
->>>>>>> da61dcc1038304633a8882f868312112d6b3fc92
+
+> > > > > > > da61dcc1038304633a8882f868312112d6b3fc92
