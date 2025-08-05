@@ -1,5 +1,15 @@
 # ClipMe - Professional Clipboard Sharing
 
+## 🎬 ClipMe
+
+### Description
+
+A Chrome extension and mobile utility crafted by **Farhan Ali**, born from my personal frustration with clipboard syncing.
+
+### Author
+
+Farhan Ali • © 2025
+
 A professional, modern clipboard sharing application that enables seamless content sharing across devices using simple 4-character room codes.
 
 ## ✨ Features
@@ -15,13 +25,16 @@ A professional, modern clipboard sharing application that enables seamless conte
 ### 🔒 Security & Privacy
 
 - **No Account Required**: Start sharing immediately without registration
+- **Auto-Delete Protection**: All content automatically deletes after 15 minutes
 - **Temporary Rooms**: Rooms expire automatically for privacy
 - **Client-Side Encryption**: Content encrypted before transmission
 - **Secure Connections**: HTTPS/WSS in production
+- **Zero Persistence**: No permanent storage of your sensitive data
 
 ### ⚡ Performance
 
 - **Real-time Sync**: Instant clipboard updates using WebSockets
+- **Privacy-First**: 15-minute auto-deletion ensures your data never persists
 - **Optimized Loading**: Code splitting and lazy loading
 - **Professional Caching**: Intelligent data caching strategies
 - **Cross-Platform**: Works on any device with a web browser
@@ -175,21 +188,13 @@ ClipShareConnect/
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - **Radix UI** for accessible component primitives
 - **Tailwind CSS** for the utility-first CSS framework
 - **Framer Motion** for smooth animations
 - **Lucide** for beautiful icons
-- **Vercel** for inspiration on modern web development
 
 ---
 
 Made with ❤️ for seamless clipboard sharing across devices.
-npm run dev
-
-> > > > > > > da61dcc1038304633a8882f868312112d6b3fc92

@@ -25,14 +25,7 @@ const Footer = React.forwardRef<HTMLElement, FooterProps>(
             transition={{ duration: 0.6, delay: 1.5 }}
             className="flex items-center justify-center gap-1"
           >
-            Made with{" "}
-            <motion.span
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
-              <Heart className="w-4 h-4 text-red-500 fill-current" />
-            </motion.span>{" "}
-            for seamless clipboard sharing
+            ClipMe — built by Farhan Ali, designed to save you time.
           </motion.p>
         </footer>
       );
@@ -99,7 +92,7 @@ const Footer = React.forwardRef<HTMLElement, FooterProps>(
           <div className="mt-8 pt-8 border-t border-slate-200/60 dark:border-slate-700/60">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                © 2025 ClipShare. Built with modern web technologies.
+                ClipMe — built by Farhan Ali, designed to save you time.
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-500 flex items-center gap-1">
                 Made with{" "}

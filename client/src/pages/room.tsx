@@ -16,6 +16,8 @@ import {
   Copy,
   QrCode,
   ClipboardPaste,
+  Shield,
+  Clock,
 } from "lucide-react";
 import QRModal from "@/components/qr-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -24,6 +26,10 @@ import { Logo } from "@/components/logo";
 interface ClipboardData {
   content: string;
   updatedAt: string;
+  expiresIn?: {
+    minutesRemaining: number;
+    expiresAt: string;
+  };
 }
 
 export default function Room() {
@@ -55,7 +61,8 @@ export default function Room() {
       // Invalidate and refetch the clipboard data after sync
       queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
       toast({
-        description: "Text synchronized successfully!",
+        description:
+          "Content synchronized! Auto-deletes in 15 minutes for privacy.",
       });
     },
     onError: (error: Error) => {
@@ -244,6 +251,17 @@ export default function Room() {
 
       {/* Enhanced Main Content with mobile optimization */}
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 relative z-10">
+        {/* Privacy Notice Banner */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-green-700 dark:text-green-300">
+            <Shield className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">Privacy Protected:</span>
+            <span>
+              All content auto-deletes after 15 minutes for your security
+            </span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Premium Sender Window */}
           <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 order-1 lg:order-1 rounded-3xl animate-fadeIn">
@@ -382,6 +400,15 @@ export default function Room() {
                             <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
                             Fetched: {formatRelativeTime(item.updatedAt)}
                           </div>
+                          {item.expiresIn && (
+                            <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
+                              <Shield className="w-3 h-3" />
+                              <span>
+                                Auto-deletes in{" "}
+                                {item.expiresIn.minutesRemaining} min
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </CardContent>

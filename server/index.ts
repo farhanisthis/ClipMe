@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
@@ -63,5 +64,24 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   server.listen(port, () => {
     log(`serving on port ${port}`);
+  });
+
+  // Graceful shutdown for privacy protection
+  process.on("SIGTERM", () => {
+    log("🛡️  Graceful shutdown initiated - cleaning up privacy protection...");
+    storage.destroy();
+    server.close(() => {
+      log("Server closed.");
+      process.exit(0);
+    });
+  });
+
+  process.on("SIGINT", () => {
+    log("🛡️  Shutdown signal received - cleaning up privacy protection...");
+    storage.destroy();
+    server.close(() => {
+      log("Server closed.");
+      process.exit(0);
+    });
   });
 })();
