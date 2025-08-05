@@ -96,6 +96,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete clipboard content
+  app.delete("/api/clip/:tag", async (req, res) => {
+    try {
+      const tag = req.params.tag?.toUpperCase();
+
+      if (!tag || tag.length !== 4 || !/^[A-Z0-9]{4}$/.test(tag)) {
+        return res.status(400).json({
+          message: "Invalid ClipTag. Must be 4 alphanumeric characters.",
+        });
+      }
+
+      await storage.deleteClipboard(tag);
+
+      res.json({
+        message: "Content deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting clipboard:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

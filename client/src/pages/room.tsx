@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ import {
   ClipboardPaste,
   Shield,
   Clock,
+  Trash2,
+  X,
 } from "lucide-react";
 import QRModal from "@/components/qr-modal";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -39,6 +41,7 @@ export default function Room() {
   const [senderText, setSenderText] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
   const [contentHistory, setContentHistory] = useState<ClipboardData[]>([]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const tag = params?.tag?.toUpperCase() || "";
 
@@ -57,8 +60,35 @@ export default function Room() {
       });
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate and refetch the clipboard data after sync
+    onSuccess: (data, variables) => {
+      // Clear the input field after successful sync
+      setSenderText("");
+
+      // Focus the textarea for immediate next input
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
+
+      // Add the synced content to local history immediately
+      const syncedContent: ClipboardData = {
+        content: variables, // The content that was synced
+        updatedAt: new Date().toISOString(),
+        expiresIn: {
+          minutesRemaining: 15,
+          expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        },
+      };
+
+      // Add to history if it's different from the last one
+      setContentHistory((prev) => {
+        const lastContent = prev[prev.length - 1];
+        if (!lastContent || lastContent.content !== syncedContent.content) {
+          return [...prev, syncedContent];
+        }
+        return prev;
+      });
+
+      // Invalidate queries for consistency
       queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
       toast({
         description:
@@ -100,6 +130,28 @@ export default function Room() {
       toast({
         title: "Error",
         description: error.message || "Failed to fetch content.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      await apiRequest("DELETE", `/api/clip/${tag}`);
+    },
+    onSuccess: () => {
+      // Clear local content history and invalidate queries
+      setContentHistory([]);
+      queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
+      toast({
+        description: "All content permanently deleted from server",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete content from server.",
         variant: "destructive",
       });
     },
@@ -151,6 +203,19 @@ export default function Room() {
         variant: "destructive",
       });
     }
+  };
+
+  // Delete individual content item (local only)
+  const handleDeleteItem = (index: number) => {
+    setContentHistory((prev) => prev.filter((_, i) => i !== index));
+    toast({
+      description: "Content item removed from local history",
+    });
+  };
+
+  // Delete all content history and server content
+  const handleDeleteAll = () => {
+    deleteMutation.mutate();
   };
 
   const formatRelativeTime = (dateString: string) => {
@@ -279,6 +344,7 @@ export default function Room() {
             <CardContent className="p-4 sm:p-6 lg:p-8">
               <div className="relative">
                 <Textarea
+                  ref={textareaRef}
                   value={senderText}
                   onChange={(e) => setSenderText(e.target.value)}
                   placeholder="Paste your clipboard content here..."
@@ -332,14 +398,38 @@ export default function Room() {
               style={{ animationDelay: "0.2s" }}
             >
               <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-blue-900/30 dark:to-teal-900/20 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
-                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
-                  <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                    <Eye className="w-4 h-4 text-white" />
-                  </div>
-                  <span>Content History</span>
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                      <Eye className="w-4 h-4 text-white" />
+                    </div>
+                    <span>Content History</span>
+                  </CardTitle>
+                  {contentHistory.length > 0 && (
+                    <Button
+                      onClick={handleDeleteAll}
+                      disabled={deleteMutation.isPending}
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                      title="Permanently delete all content from server and history"
+                    >
+                      {deleteMutation.isPending ? (
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                      <span className="ml-1 hidden sm:inline">
+                        {deleteMutation.isPending
+                          ? "Deleting..."
+                          : "Delete All"}
+                      </span>
+                    </Button>
+                  )}
+                </div>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
-                  Fetched content will appear here
+                  Fetched content will appear here. Individual items can be
+                  removed locally, "Delete All" removes from server permanently.
                 </p>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 lg:p-8">
@@ -396,19 +486,33 @@ export default function Room() {
                           </div>
                         </div>
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                            <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                            Fetched: {formatRelativeTime(item.updatedAt)}
-                          </div>
-                          {item.expiresIn && (
-                            <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
-                              <Shield className="w-3 h-3" />
-                              <span>
-                                Auto-deletes in{" "}
-                                {item.expiresIn.minutesRemaining} min
-                              </span>
+                          <div className="flex items-center gap-3">
+                            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                              <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                              Fetched: {formatRelativeTime(item.updatedAt)}
                             </div>
-                          )}
+                            {item.expiresIn && (
+                              <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
+                                <Shield className="w-3 h-3" />
+                                <span>
+                                  Auto-deletes in{" "}
+                                  {item.expiresIn.minutesRemaining} min
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteItem(index);
+                            }}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors p-1 h-auto"
+                            title="Remove from local history (will reappear if you fetch again)"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </CardContent>

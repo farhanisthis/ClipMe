@@ -1,5 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "@/components/theme-provider";
 
 interface WatermarkProps {
   className?: string;
@@ -7,43 +8,65 @@ interface WatermarkProps {
 
 export function Watermark({ className }: WatermarkProps) {
   const [isRight, setIsRight] = React.useState(true);
-  const [isDark, setIsDark] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [isVisible, setIsVisible] = React.useState(true);
+  const { theme } = useTheme();
 
-  // Detect dark mode
+  // Calculate if dark mode based on theme and system preference
+  const [systemPrefersDark, setSystemPrefersDark] = React.useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
+
+  // Listen for system theme changes
   React.useEffect(() => {
-    const checkDarkMode = () => {
-      const isDarkMode =
-        document.documentElement.classList.contains("dark") ||
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDark(isDarkMode);
-    };
-
-    checkDarkMode();
-
-    // Listen for theme changes
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    mediaQuery.addEventListener("change", checkDarkMode);
+    const handleChange = (e: MediaQueryListEvent) =>
+      setSystemPrefersDark(e.matches);
 
-    return () => {
-      observer.disconnect();
-      mediaQuery.removeEventListener("change", checkDarkMode);
-    };
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
-  // Randomly switch sides every 45 seconds
+  const isDark = React.useMemo(() => {
+    if (theme === "dark") return true;
+    if (theme === "light") return false;
+    // For system theme, use the tracked system preference
+    return systemPrefersDark;
+  }, [theme, systemPrefersDark]);
+
+  // Detect mobile device
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      setIsRight((prev) => !prev);
-    }, 45000);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-    return () => clearInterval(interval);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
+
+  // Auto-hide on mobile after 30 seconds
+  React.useEffect(() => {
+    if (isMobile) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+      }, 30000); // Hide after 30 seconds on mobile
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile]);
+
+  // Randomly switch sides every 45 seconds (only on desktop)
+  React.useEffect(() => {
+    if (!isMobile) {
+      const interval = setInterval(() => {
+        setIsRight((prev) => !prev);
+      }, 45000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isMobile]);
 
   const handleLinkedInClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,69 +81,96 @@ export function Watermark({ className }: WatermarkProps) {
     <div
       style={{
         position: "fixed",
-        bottom: "20px",
-        right: isRight ? "20px" : "auto",
-        left: isRight ? "auto" : "20px",
-        zIndex: 999999,
+        bottom: isMobile ? "12px" : "20px",
+        right: isRight ? (isMobile ? "12px" : "20px") : "auto",
+        left: isRight ? "auto" : isMobile ? "12px" : "20px",
+        zIndex: isMobile ? 999 : 999999, // Lower z-index on mobile
         pointerEvents: "none",
         userSelect: "none",
         transition: "all 1s ease-in-out",
+        opacity: isMobile ? (isVisible ? 0.7 : 0) : 1, // Fade out on mobile
+        transform:
+          isMobile && !isVisible ? "translateY(20px)" : "translateY(0)",
       }}
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, delay: 2 }}
+        animate={{
+          opacity: isMobile ? (isVisible ? 0.6 : 0) : 1,
+          y: 0,
+          scale: isMobile && !isVisible ? 0.8 : 1,
+        }}
+        transition={{ duration: 1, delay: isMobile ? 3 : 2 }} // Longer delay on mobile
         style={{
           backgroundColor: isDark
-            ? "rgba(17, 24, 39, 0.9)"
-            : "rgba(255, 255, 255, 0.9)",
+            ? "rgba(17, 24, 39, 0.85)"
+            : "rgba(255, 255, 255, 0.85)",
           border: isDark
-            ? "1px solid rgba(75, 85, 99, 0.3)"
-            : "1px solid rgba(0, 0, 0, 0.1)",
-          borderRadius: "8px",
-          padding: "8px 12px",
-          boxShadow: isDark
+            ? "1px solid rgba(75, 85, 99, 0.2)"
+            : "1px solid rgba(0, 0, 0, 0.08)",
+          borderRadius: isMobile ? "6px" : "8px",
+          padding: isMobile ? "6px 8px" : "8px 12px",
+          boxShadow: isMobile
+            ? isDark
+              ? "0 2px 4px rgba(0, 0, 0, 0.2)"
+              : "0 2px 4px rgba(0, 0, 0, 0.08)"
+            : isDark
             ? "0 4px 6px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.5)"
             : "0 4px 6px rgba(0, 0, 0, 0.1)",
-          backdropFilter: "blur(12px)",
-          fontSize: "11px",
+          backdropFilter: "blur(8px)",
+          fontSize: isMobile ? "9px" : "11px", // Smaller text on mobile
           color: isDark ? "#e5e7eb" : "#374151",
-          fontWeight: "500",
-          maxWidth: "200px",
+          fontWeight: isMobile ? "400" : "500", // Lighter weight on mobile
+          maxWidth: isMobile ? "150px" : "200px", // Smaller max width on mobile
           lineHeight: "1.3",
+          transform: isMobile ? "scale(0.9)" : "scale(1)", // Slightly smaller on mobile
         }}
       >
         <span>ClipMe — built by </span>
         <motion.span
           style={{
             color: isDark ? "#60a5fa" : "#3b82f6",
-            fontWeight: "600",
+            fontWeight: isMobile ? "500" : "600", // Lighter weight on mobile
             cursor: "pointer",
             pointerEvents: "auto",
             display: "inline-block",
             position: "relative",
             transition: "all 0.2s ease-in-out",
           }}
-          whileHover={{
-            scale: 1.05,
-            color: isDark ? "#93c5fd" : "#1d4ed8",
-          }}
+          whileHover={
+            isMobile
+              ? {}
+              : {
+                  // Disable hover effects on mobile
+                  scale: 1.05,
+                  color: isDark ? "#93c5fd" : "#1d4ed8",
+                }
+          }
           whileTap={{ scale: 0.95 }}
           onClick={handleLinkedInClick}
-          onMouseEnter={(e) => {
-            const target = e.target as HTMLElement;
-            target.style.textShadow = isDark
-              ? "0 0 8px rgba(96, 165, 250, 0.6)"
-              : "0 0 8px rgba(59, 130, 246, 0.4)";
-            target.style.transform = "translateY(-1px)";
-          }}
-          onMouseLeave={(e) => {
-            const target = e.target as HTMLElement;
-            target.style.textShadow = "none";
-            target.style.transform = "translateY(0)";
-          }}
-          title="Connect with Farhan Ali on LinkedIn"
+          onMouseEnter={
+            isMobile
+              ? undefined
+              : (e) => {
+                  // Disable hover on mobile
+                  const target = e.target as HTMLElement;
+                  target.style.textShadow = isDark
+                    ? "0 0 8px rgba(96, 165, 250, 0.6)"
+                    : "0 0 8px rgba(59, 130, 246, 0.4)";
+                  target.style.transform = "translateY(-1px)";
+                }
+          }
+          onMouseLeave={
+            isMobile
+              ? undefined
+              : (e) => {
+                  // Disable hover on mobile
+                  const target = e.target as HTMLElement;
+                  target.style.textShadow = "none";
+                  target.style.transform = "translateY(0)";
+                }
+          }
+          title={isMobile ? undefined : "Connect with Farhan Ali on LinkedIn"} // No tooltip on mobile
         >
           Farhan Ali
         </motion.span>
