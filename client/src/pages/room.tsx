@@ -4,8 +4,10 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Removed Tabs import
 import { useToast } from "@/hooks/use-toast";
+import { useWebSocket } from "@/hooks/use-websocket";
+import { useAuth } from "@/contexts/auth-context";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import {
   ArrowLeft,
@@ -22,9 +24,16 @@ import {
   Trash2,
   X,
   FileText,
+  Users,
+  Wifi,
+  WifiOff,
+  Lock,
+  User,
+  Crown,
 } from "lucide-react";
 import QRModal from "@/components/qr-modal";
-import FileUpload from "@/components/file-upload";
+import RoomPasswordModal from "@/components/room-password-modal";
+import EnhancedFileUpload from "@/components/enhanced-file-upload";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 
@@ -41,27 +50,91 @@ export default function Room() {
   const [, params] = useRoute("/room/:tag");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [senderText, setSenderText] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [roomPassword, setRoomPassword] = useState<string | null>(null);
   const [contentHistory, setContentHistory] = useState<ClipboardData[]>([]);
-  const [activeTab, setActiveTab] = useState("text");
+  const [showFileSharing, setShowFileSharing] = useState(true);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const tag = params?.tag?.toUpperCase() || "";
+
+  // Add WebSocket connection
+  const { isConnected, userCount, lastMessage } = useWebSocket(tag);
+
+  // Helper function to create headers with room password
+  const getRequestHeaders = () => {
+    const headers: Record<string, string> = {};
+    if (roomPassword) {
+      headers["x-room-password"] = roomPassword;
+    }
+    return headers;
+  };
+
+  // Check if room requires password and fetch initial content
+  useEffect(() => {
+    const checkRoomAccess = async () => {
+      try {
+        const response = await apiRequest(
+          "GET",
+          `/api/rooms/${tag}`,
+          undefined
+        );
+        const roomData = await response.json();
+
+        if (roomData.room.requiresPassword && !roomPassword) {
+          setShowPasswordModal(true);
+        } else {
+          // Auto-fetch clipboard content when room is accessible
+          queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
+        }
+      } catch (error: any) {
+        // Room might not exist yet, that's okay
+        console.log("Room check:", error.message);
+        // Still try to fetch clipboard content for new rooms
+        queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
+      }
+    };
+
+    if (tag) {
+      checkRoomAccess();
+    }
+  }, [tag, roomPassword, queryClient]);
+
+  const handlePasswordValid = (password: string) => {
+    setRoomPassword(password);
+    setShowPasswordModal(false);
+  };
 
   // Fetch clipboard content
   const { data: clipboardData, isLoading: isFetching } =
     useQuery<ClipboardData>({
       queryKey: ["/api/clip", tag],
-      enabled: false, // Only fetch when explicitly requested
+      enabled: !!tag, // Enable when tag is available
+      queryFn: async () => {
+        const response = await apiRequest(
+          "GET",
+          `/api/clip/${tag}`,
+          undefined,
+          getRequestHeaders()
+        );
+        return response.json();
+      },
     });
 
   // Sync mutation
   const syncMutation = useMutation({
     mutationFn: async (content: string) => {
-      const response = await apiRequest("POST", `/api/clip/${tag}`, {
-        content,
-      });
+      const response = await apiRequest(
+        "POST",
+        `/api/clip/${tag}`,
+        {
+          content,
+        },
+        getRequestHeaders()
+      );
       return response.json();
     },
     onSuccess: (data, variables) => {
@@ -115,6 +188,15 @@ export default function Room() {
       queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
       return queryClient.fetchQuery({
         queryKey: ["/api/clip", tag],
+        queryFn: async () => {
+          const response = await apiRequest(
+            "GET",
+            `/api/clip/${tag}`,
+            undefined,
+            getRequestHeaders()
+          );
+          return response.json();
+        },
       }) as Promise<ClipboardData>;
     },
     onSuccess: (data: ClipboardData) => {
@@ -142,7 +224,12 @@ export default function Room() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (): Promise<void> => {
-      await apiRequest("DELETE", `/api/clip/${tag}`);
+      await apiRequest(
+        "DELETE",
+        `/api/clip/${tag}`,
+        undefined,
+        getRequestHeaders()
+      );
     },
     onSuccess: () => {
       // Clear local content history and invalidate queries
@@ -221,6 +308,36 @@ export default function Room() {
   const handleDeleteAll = () => {
     deleteMutation.mutate();
   };
+
+  // React to WebSocket messages
+  useEffect(() => {
+    if (lastMessage) {
+      switch (lastMessage.type) {
+        case "clipboardUpdate":
+          // Auto-fetch new content when someone else updates it
+          if (lastMessage.content && lastMessage.updatedAt) {
+            const newContent: ClipboardData = {
+              content: lastMessage.content,
+              updatedAt: lastMessage.updatedAt,
+              expiresIn: {
+                minutesRemaining: 15,
+                expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+              },
+            };
+
+            // Add to history if it's different from the last one
+            setContentHistory((prev) => {
+              const lastContent = prev[prev.length - 1];
+              if (!lastContent || lastContent.content !== newContent.content) {
+                return [...prev, newContent];
+              }
+              return prev;
+            });
+          }
+          break;
+      }
+    }
+  }, [lastMessage]);
 
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -304,6 +421,26 @@ export default function Room() {
           </div>
 
           <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            {/* Connection Status */}
+            <div className="flex items-center gap-1 text-xs bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-2 py-1 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+              {isConnected ? (
+                <Wifi className="w-3 h-3 text-green-500" />
+              ) : (
+                <WifiOff className="w-3 h-3 text-red-500" />
+              )}
+              <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                <Users className="w-3 h-3" />
+                <span>{userCount || 0}</span>
+              </div>
+            </div>
+            {user && (
+              <div className="hidden sm:flex items-center gap-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+                <Crown className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {user.username}
+                </span>
+              </div>
+            )}
             <ThemeToggle />
             <Button
               variant="outline"
@@ -318,246 +455,264 @@ export default function Room() {
         </div>
       </header>
 
-        {/* Enhanced Main Content with mobile optimization */}
-        <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 relative z-10">
-          {/* Privacy Notice Banner */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg mb-4 sm:mb-6">
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-green-700 dark:text-green-300">
-              <Shield className="w-4 h-4 flex-shrink-0" />
-              <span className="font-medium">Privacy Protected:</span>
-              <span>
-                All content auto-deletes after 15 minutes (text) or 10 minutes (files) for your security
-              </span>
-            </div>
+      {/* Enhanced Main Content with mobile optimization */}
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 relative z-10">
+        {/* Privacy Notice Banner */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800/50 px-3 sm:px-4 py-2 sm:py-3 rounded-lg mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-green-700 dark:text-green-300">
+            <Shield className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">Privacy Protected:</span>
+            <span>
+              All content auto-deletes after 15 minutes (text) or 10 minutes
+              (files) for your security
+            </span>
+          </div>
+        </div>
+
+        <div className="w-full">
+          <div className="flex justify-center mb-6 gap-4">
+            <button
+              className={`px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 ${
+                !showFileSharing
+                  ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              }`}
+              onClick={() => setShowFileSharing(false)}
+            >
+              <Edit3 className="w-4 h-4" /> Text Sharing
+            </button>
+            <button
+              className={`px-4 py-2 rounded-xl font-semibold flex items-center gap-2 transition-all duration-300 ${
+                showFileSharing
+                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+                  : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
+              }`}
+              onClick={() => setShowFileSharing(true)}
+            >
+              <FileText className="w-4 h-4" /> File Sharing
+            </button>
           </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-1 mb-6">
-              <TabsTrigger 
-                value="text" 
-                className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white transition-all duration-300"
-              >
-                <Edit3 className="w-4 h-4" />
-                <span>Text Sharing</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="file" 
-                className="flex items-center space-x-2 rounded-xl data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white transition-all duration-300"
-              >
-                <FileText className="w-4 h-4" />
-                <span>File Sharing</span>
-              </TabsTrigger>
-            </TabsList>
+          {!showFileSharing && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              {/* Premium Sender Window */}
+              <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 order-1 lg:order-1 rounded-3xl animate-fadeIn">
+                <CardHeader className="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-blue-900/30 dark:to-indigo-900/30 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
+                  <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                      <Edit3 className="w-4 h-4 text-white" />
+                    </div>
+                    <span>Sender Window</span>
+                  </CardTitle>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
+                    Paste or type your text here
+                  </p>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 lg:p-8">
+                  <div className="relative">
+                    <Textarea
+                      ref={textareaRef}
+                      value={senderText}
+                      onChange={(e) => setSenderText(e.target.value)}
+                      placeholder="Paste your clipboard content here..."
+                      className="w-full h-52 sm:h-60 lg:h-72 p-4 sm:p-6 border-2 border-slate-300 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 resize-none text-sm sm:text-base leading-relaxed glass dark:glass-dark dark:text-white dark:placeholder-slate-400 transition-all duration-300 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-lg font-medium"
+                    />
+                    <div className="absolute bottom-4 right-4 text-xs font-medium text-slate-500 dark:text-blue-200 bg-white/80 dark:bg-blue-800/60 px-2 py-1 rounded-lg backdrop-blur-sm">
+                      {senderText.length} chars
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 gap-4 sm:gap-0">
+                    <div className="text-sm text-slate-600 dark:text-blue-200 flex items-center gap-2 font-medium">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+                      Ready to sync
+                    </div>
+                    <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-3 sm:space-y-0 sm:space-x-3">
+                      <Button
+                        onClick={handlePasteAndSync}
+                        disabled={syncMutation.isPending}
+                        variant="outline"
+                        className="w-full sm:w-auto px-4 py-3 flex items-center justify-center space-x-2 border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-900/20 transition-all duration-300 hover:scale-105 hover:shadow-lg font-semibold rounded-xl"
+                      >
+                        {syncMutation.isPending ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <ClipboardPaste className="w-4 h-4" />
+                        )}
+                        <span>Paste & Sync</span>
+                      </Button>
+                      <Button
+                        onClick={handleSync}
+                        disabled={!senderText.trim() || syncMutation.isPending}
+                        className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-xl rounded-xl"
+                      >
+                        {syncMutation.isPending ? (
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="w-4 h-4" />
+                        )}
+                        <span>Sync Now</span>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-            <TabsContent value="text" className="mt-0">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                {/* Premium Sender Window */}
-                <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 order-1 lg:order-1 rounded-3xl animate-fadeIn">
-                  <CardHeader className="bg-gradient-to-r from-indigo-50/80 to-purple-50/80 dark:from-blue-900/30 dark:to-indigo-900/30 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
-                    <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
-                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                        <Edit3 className="w-4 h-4 text-white" />
-                      </div>
-                      <span>Sender Window</span>
-                    </CardTitle>
+              {/* Enhanced Content History Window */}
+              <div className="space-y-3 sm:space-y-4 order-2 lg:order-2">
+                {/* Fetch Button */}
+                <Card
+                  className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 rounded-3xl animate-fadeIn"
+                  style={{ animationDelay: "0.2s" }}
+                >
+                  <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-blue-900/30 dark:to-teal-900/20 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
+                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                          <Eye className="w-4 h-4 text-white" />
+                        </div>
+                        <span>Content History</span>
+                      </CardTitle>
+                      {contentHistory.length > 0 && (
+                        <Button
+                          onClick={handleDeleteAll}
+                          disabled={deleteMutation.isPending}
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                          title="Permanently delete all content from server and history"
+                        >
+                          {deleteMutation.isPending ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                          <span className="ml-1 hidden sm:inline">
+                            {deleteMutation.isPending
+                              ? "Deleting..."
+                              : "Delete All"}
+                          </span>
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
-                      Paste or type your text here
+                      Fetched content will appear here. Individual items can be
+                      removed locally, "Delete All" removes from server
+                      permanently.
                     </p>
                   </CardHeader>
                   <CardContent className="p-4 sm:p-6 lg:p-8">
-                    <div className="relative">
-                      <Textarea
-                        ref={textareaRef}
-                        value={senderText}
-                        onChange={(e) => setSenderText(e.target.value)}
-                        placeholder="Paste your clipboard content here..."
-                        className="w-full h-52 sm:h-60 lg:h-72 p-4 sm:p-6 border-2 border-slate-300 dark:border-slate-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 resize-none text-sm sm:text-base leading-relaxed glass dark:glass-dark dark:text-white dark:placeholder-slate-400 transition-all duration-300 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-lg font-medium"
-                      />
-                      <div className="absolute bottom-4 right-4 text-xs font-medium text-slate-500 dark:text-blue-200 bg-white/80 dark:bg-blue-800/60 px-2 py-1 rounded-lg backdrop-blur-sm">
-                        {senderText.length} chars
-                      </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 sm:mt-6 gap-4 sm:gap-0">
-                      <div className="text-sm text-slate-600 dark:text-blue-200 flex items-center gap-2 font-medium">
-                        <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
-                        Ready to sync
-                      </div>
-                      <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-3 sm:space-y-0 sm:space-x-3">
-                        <Button
-                          onClick={handlePasteAndSync}
-                          disabled={syncMutation.isPending}
-                          variant="outline"
-                          className="w-full sm:w-auto px-4 py-3 flex items-center justify-center space-x-2 border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500 dark:text-emerald-400 dark:hover:bg-emerald-900/20 transition-all duration-300 hover:scale-105 hover:shadow-lg font-semibold rounded-xl"
-                        >
-                          {syncMutation.isPending ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <ClipboardPaste className="w-4 h-4" />
-                          )}
-                          <span>Paste & Sync</span>
-                        </Button>
-                        <Button
-                          onClick={handleSync}
-                          disabled={!senderText.trim() || syncMutation.isPending}
-                          className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-xl rounded-xl"
-                        >
-                          {syncMutation.isPending ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <RefreshCw className="w-4 h-4" />
-                          )}
-                          <span>Sync Now</span>
-                        </Button>
-                      </div>
-                    </div>
+                    <Button
+                      onClick={handleFetch}
+                      disabled={fetchMutation.isPending}
+                      className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-xl text-base rounded-2xl"
+                    >
+                      {fetchMutation.isPending ? (
+                        <RefreshCw className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Download className="w-5 h-5" />
+                      )}
+                      <span>Fetch Latest Content</span>
+                    </Button>
                   </CardContent>
                 </Card>
 
-                {/* Enhanced Content History Window */}
-                <div className="space-y-3 sm:space-y-4 order-2 lg:order-2">
-                  {/* Fetch Button */}
-                  <Card
-                    className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 rounded-3xl animate-fadeIn"
-                    style={{ animationDelay: "0.2s" }}
-                  >
-                    <CardHeader className="bg-gradient-to-r from-emerald-50/80 to-teal-50/80 dark:from-blue-900/30 dark:to-teal-900/20 border-b border-slate-200/50 dark:border-blue-700/30 rounded-t-3xl">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center">
-                          <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                            <Eye className="w-4 h-4 text-white" />
-                          </div>
-                          <span>Content History</span>
-                        </CardTitle>
-                        {contentHistory.length > 0 && (
-                          <Button
-                            onClick={handleDeleteAll}
-                            disabled={deleteMutation.isPending}
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
-                            title="Permanently delete all content from server and history"
-                          >
-                            {deleteMutation.isPending ? (
-                              <RefreshCw className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                            <span className="ml-1 hidden sm:inline">
-                              {deleteMutation.isPending
-                                ? "Deleting..."
-                                : "Delete All"}
-                            </span>
-                          </Button>
-                        )}
+                {/* Enhanced Content History */}
+                {contentHistory.length === 0 ? (
+                  <Card className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                          <Eye className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <p className="text-sm sm:text-base">
+                          No content fetched yet.
+                        </p>
+                        <p className="text-xs sm:text-sm mt-1">
+                          Click "Fetch Latest Content" to retrieve clipboard
+                          content.
+                        </p>
                       </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
-                        Fetched content will appear here. Individual items can be
-                        removed locally, "Delete All" removes from server permanently.
-                      </p>
-                    </CardHeader>
-                    <CardContent className="p-4 sm:p-6 lg:p-8">
-                      <Button
-                        onClick={handleFetch}
-                        disabled={fetchMutation.isPending}
-                        className="w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold flex items-center justify-center space-x-2 transition-all duration-300 hover:scale-105 hover:shadow-xl text-base rounded-2xl"
-                      >
-                        {fetchMutation.isPending ? (
-                          <RefreshCw className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <Download className="w-5 h-5" />
-                        )}
-                        <span>Fetch Latest Content</span>
-                      </Button>
                     </CardContent>
                   </Card>
-
-                  {/* Enhanced Content History */}
-                  {contentHistory.length === 0 ? (
-                    <Card className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md">
-                      <CardContent className="p-4 sm:p-6">
-                        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                            <Eye className="w-8 h-8 text-gray-400" />
-                          </div>
-                          <p className="text-sm sm:text-base">
-                            No content fetched yet.
-                          </p>
-                          <p className="text-xs sm:text-sm mt-1">
-                            Click "Fetch Latest Content" to retrieve clipboard
-                            content.
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="space-y-3 sm:space-y-4">
-                      {contentHistory.map((item, index) => (
-                        <Card
-                          key={`${item.updatedAt}-${index}`}
-                          className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-0.5"
-                        >
-                          <CardContent className="p-3 sm:p-4">
-                            <div className="space-y-3">
-                              <div
-                                onClick={() => handleCopyToClipboard(item.content)}
-                                className="bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700 dark:to-gray-800/50 border border-gray-200/50 dark:border-gray-600/50 rounded-xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-gray-100 max-h-32 sm:max-h-40 overflow-y-auto whitespace-pre-wrap break-words cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group relative"
-                                title="Click to copy content"
-                              >
-                                {item.content}
-                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                  <Copy className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                                </div>
-                              </div>
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                                <div className="flex items-center gap-3">
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                                    <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
-                                    Fetched: {formatRelativeTime(item.updatedAt)}
-                                  </div>
-                                  {item.expiresIn && (
-                                    <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
-                                      <Shield className="w-3 h-3" />
-                                      <span>
-                                        Auto-deletes in{" "}
-                                        {item.expiresIn.minutesRemaining} min
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                                <Button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteItem(index);
-                                  }}
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors p-1 h-auto"
-                                  title="Remove from local history (will reappear if you fetch again)"
-                                >
-                                  <X className="w-4 h-4" />
-                                </Button>
+                ) : (
+                  <div className="space-y-3 sm:space-y-4">
+                    {contentHistory.map((item, index) => (
+                      <Card
+                        key={`${item.updatedAt}-${index}`}
+                        className="shadow-2xl border border-gray-200/50 dark:border-gray-700/50 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300 transform hover:-translate-y-0.5"
+                      >
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="space-y-3">
+                            <div
+                              onClick={() =>
+                                handleCopyToClipboard(item.content)
+                              }
+                              className="bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-gray-700 dark:to-gray-800/50 border border-gray-200/50 dark:border-gray-600/50 rounded-xl p-3 sm:p-4 text-xs sm:text-sm leading-relaxed text-gray-900 dark:text-gray-100 max-h-32 sm:max-h-40 overflow-y-auto whitespace-pre-wrap break-words cursor-pointer hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-blue-900/20 dark:hover:to-indigo-900/20 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-300 group relative"
+                              title="Click to copy content"
+                            >
+                              {item.content}
+                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <Copy className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                              <div className="flex items-center gap-3">
+                                <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                                  <span className="inline-block w-1.5 h-1.5 bg-green-400 rounded-full"></span>
+                                  Fetched: {formatRelativeTime(item.updatedAt)}
+                                </div>
+                                {item.expiresIn && (
+                                  <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
+                                    <Shield className="w-3 h-3" />
+                                    <span>
+                                      Auto-deletes in{" "}
+                                      {item.expiresIn.minutesRemaining} min
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              <Button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteItem(index);
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors p-1 h-auto"
+                                title="Remove from local history (will reappear if you fetch again)"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
-            </TabsContent>
+            </div>
+          )}
 
-            <TabsContent value="file" className="mt-0">
-              <FileUpload tag={tag} />
-            </TabsContent>
-          </Tabs>
-        </main>
+          {showFileSharing && (
+            <EnhancedFileUpload tag={tag} roomPassword={roomPassword} />
+          )}
+        </div>
+      </main>
 
       {/* QR Modal */}
       <QRModal
         isOpen={showQRModal}
         onClose={() => setShowQRModal(false)}
         clipTag={tag}
+      />
+
+      {/* Room Password Modal */}
+      <RoomPasswordModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        roomTag={tag}
+        onPasswordValid={handlePasswordValid}
       />
     </div>
   );

@@ -1,0 +1,16 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5000",
+  "executionArgs": {
+    "projectName": "ClipMe",
+    "projectPath": "d:/Node/MERN/ClipMe",
+    "testIds": [],
+    "additionalInstruction": "Focus on testing the core functionality including room creation, clipboard sharing, file uploads, authentication, and real-time features. Ensure mobile responsiveness and cross-browser compatibility.",
+    "envs": {
+      "API_KEY": "sk-user-EbHeDaln6HrP9vDAtIDQ5h5-jU4i4ovxRoAKWdxInxTuB-iFqfwXK4cORKbRjZ06COnOzB4B-sVPzvqV_-99Qti2BtJj05Y8DCAqwIQlkt0R1JUzFq9YX0z7UsdiLYgGC18"
+    }
+  },
+  "proxy": "http://ac2262b8-84ae-4303-a15f-243564545891:D1YAWMi4GpN48rnji7IwuogDiMETLcq9@tun.testsprite.com:8080"
+}

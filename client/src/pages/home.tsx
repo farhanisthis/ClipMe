@@ -7,18 +7,42 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 import QRScanner from "@/components/qr-scanner";
-import { ClipboardCopy, Smartphone, Shield, QrCode, Scan } from "lucide-react";
+import AuthModal from "@/components/auth-modal";
+import CreateRoomModal from "@/components/create-room-modal";
+import { useAuth } from "@/contexts/auth-context";
+import {
+  ClipboardCopy,
+  Smartphone,
+  Shield,
+  QrCode,
+  Scan,
+  User,
+  LogOut,
+  Plus,
+  Crown,
+} from "lucide-react";
 
 export default function Home() {
   const [clipTag, setClipTag] = useState(["", "", "", ""]);
   const [, setLocation] = useLocation();
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showCreateRoomModal, setShowCreateRoomModal] = useState(false);
+  const { user, logout, login } = useAuth();
   const inputRefs = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
   ];
+
+  const handleAuthSuccess = (userData: any, token: string) => {
+    login(userData, token);
+  };
+
+  const handleRoomCreated = (roomTag: string) => {
+    setLocation(`/room/${roomTag}`);
+  };
 
   const isMobile =
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
@@ -127,8 +151,45 @@ export default function Home() {
         style={{ animationDelay: "1.5s", animationDuration: "3.5s" }}
       ></div>
 
-      {/* Theme Toggle with enhanced styling */}
-      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6">
+      {/* Theme Toggle and Auth Section with enhanced styling */}
+      <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6 flex items-center gap-3">
+        {user ? (
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-gray-200/50 dark:border-gray-700/50">
+              <Crown className="w-4 h-4 text-amber-500" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {user.username}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCreateRoomModal(true)}
+              className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Create Room
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={logout}
+              className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-800/80 text-red-600 hover:text-red-700 transition-all duration-200"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAuthModal(true)}
+            className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-gray-200/50 dark:border-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-200"
+          >
+            <User className="w-4 h-4 mr-1" />
+            Login
+          </Button>
+        )}
         <ThemeToggle />
       </div>
 
@@ -205,6 +266,18 @@ export default function Home() {
                   Join Room
                 </Button>
               )}
+
+              {/* Create Room Button */}
+              <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-600/50">
+                <Button
+                  type="button"
+                  onClick={() => setShowCreateRoomModal(true)}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium transition-all duration-200 rounded-xl"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Room
+                </Button>
+              </div>
             </form>
 
             {/* Premium QR Scanner Button for Mobile */}
@@ -269,6 +342,21 @@ export default function Home() {
         <QRScanner
           isOpen={showQRScanner}
           onClose={() => setShowQRScanner(false)}
+        />
+
+        {/* Authentication Modal */}
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+
+        {/* Create Room Modal */}
+        <CreateRoomModal
+          isOpen={showCreateRoomModal}
+          onClose={() => setShowCreateRoomModal(false)}
+          onRoomCreated={handleRoomCreated}
+          currentUser={user}
         />
       </div>
     </div>

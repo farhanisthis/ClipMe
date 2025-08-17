@@ -1,0 +1,590 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Registration and JWT Authentication Success",
+    "description": "Verify that a user can register with a valid email and password and receive a valid JWT token upon successful login.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Input a valid email and password with proper format."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "Registration succeeds, and the user receives confirmation."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter the registered email and password."
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form."
+      },
+      {
+        "type": "assertion",
+        "description": "User is logged in, JWT token is issued, and stored securely in client."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "User Registration with Weak Password Rejection",
+    "description": "Ensure the registration system rejects weak passwords and displays appropriate error messages.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the registration page."
+      },
+      {
+        "type": "action",
+        "description": "Input a valid email and a password that is too short or common."
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form."
+      },
+      {
+        "type": "assertion",
+        "description": "Registration fails with clear feedback about password requirements."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "JWT Authentication with Invalid Credentials",
+    "description": "Verify that login attempts with invalid credentials are rejected and do not issue JWT tokens.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter an unregistered email or wrong password."
+      },
+      {
+        "type": "action",
+        "description": "Submit login."
+      },
+      {
+        "type": "assertion",
+        "description": "Login fails with proper error message, and no JWT token is issued."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Room Creation Without Password",
+    "description": "Confirm users can successfully create a room using a 4-character alphanumeric code without setting a password.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and navigate to the room creation interface."
+      },
+      {
+        "type": "action",
+        "description": "Create a room without entering any password."
+      },
+      {
+        "type": "assertion",
+        "description": "Room is created successfully with a valid 4-character code displayed."
+      },
+      {
+        "type": "assertion",
+        "description": "Room shows real-time user count starting at 1."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Room Creation With Password and Unauthorized Access Prevention",
+    "description": "Verify that a room created with a password requires that password for other users to join and refuses access if incorrect password is provided.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create a new room with a password set."
+      },
+      {
+        "type": "action",
+        "description": "Log out or open the app in a new session."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to join the room with an incorrect password."
+      },
+      {
+        "type": "assertion",
+        "description": "Access is denied with an appropriate error message."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to join the room again with the correct password."
+      },
+      {
+        "type": "assertion",
+        "description": "Access is granted and user enters the room successfully."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Join Room via 4-Character Code and QR Code",
+    "description": "Validate that a user can join existing rooms either by entering the 4-character code manually or scanning a QR code.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Obtain a valid 4-character room code."
+      },
+      {
+        "type": "action",
+        "description": "Enter the code manually into the join room field."
+      },
+      {
+        "type": "assertion",
+        "description": "User successfully joins the room without errors."
+      },
+      {
+        "type": "action",
+        "description": "Obtain the QR code associated with a different room."
+      },
+      {
+        "type": "action",
+        "description": "Use the in-app QR code scanner to scan the code."
+      },
+      {
+        "type": "assertion",
+        "description": "User successfully joins the room linked to the scanned QR code."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Real-time Clipboard Text Sharing",
+    "description": "Ensure text clipboard data shared in a room is synchronized in real-time to all participants with correct updates.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User A enters a room and sends text content to the clipboard."
+      },
+      {
+        "type": "action",
+        "description": "User B joins the same room."
+      },
+      {
+        "type": "assertion",
+        "description": "User B sees the clipboard text updated in real-time immediately upon sharing."
+      },
+      {
+        "type": "action",
+        "description": "User B updates the clipboard text."
+      },
+      {
+        "type": "assertion",
+        "description": "User A receives the updated clipboard text instantly."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Real-time File Sharing with Drag-and-Drop Upload",
+    "description": "Verify that files can be uploaded via drag-and-drop within a room, with progress tracking and type validation working correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User opens a room."
+      },
+      {
+        "type": "action",
+        "description": "Drag and drop a supported file type onto the file upload area."
+      },
+      {
+        "type": "assertion",
+        "description": "File upload progress is shown and advances correctly."
+      },
+      {
+        "type": "assertion",
+        "description": "File is fully uploaded and synchronized to all room participants."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload an unsupported file type."
+      },
+      {
+        "type": "assertion",
+        "description": "Upload is rejected with an error message indicating invalid file type."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Clipboard Data Expiration After 15 Minutes",
+    "description": "Test that clipboard text and file data shared within a room expire automatically after 15 minutes and are removed from all clients.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User shares clipboard text or file data in a room."
+      },
+      {
+        "type": "assertion",
+        "description": "Shared data is visible to all room participants immediately."
+      },
+      {
+        "type": "action",
+        "description": "Wait for 15 minutes (simulate time if possible)."
+      },
+      {
+        "type": "assertion",
+        "description": "Shared clipboard data and files are deleted automatically and no longer visible to users."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Room Auto-Deletion and Data Clearance on Leave",
+    "description": "Validate that when a user leaves a room, the room data is deleted if empty and shared clipboard content is cleared per privacy rules.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User enters a room and clipboard data is shared."
+      },
+      {
+        "type": "action",
+        "description": "User leaves the room."
+      },
+      {
+        "type": "assertion",
+        "description": "If no other users remain, room and data are deleted."
+      },
+      {
+        "type": "action",
+        "description": "Another user joins the room afterward."
+      },
+      {
+        "type": "assertion",
+        "description": "Room does not exist or is empty, requiring recreation."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Dark/Light Theme Toggle and Persistence",
+    "description": "Check that the user can toggle between dark and light themes, the UI updates accordingly, and user preference is saved and reapplied on reload.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Load the application on a device with default system preference."
+      },
+      {
+        "type": "assertion",
+        "description": "Initial theme matches system preference automatically."
+      },
+      {
+        "type": "action",
+        "description": "Toggle the theme switch to change theme manually."
+      },
+      {
+        "type": "assertion",
+        "description": "Theme changes immediately across all UI components."
+      },
+      {
+        "type": "action",
+        "description": "Reload the application."
+      },
+      {
+        "type": "assertion",
+        "description": "The manually selected theme preference is persisted and applied."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Mobile-First Responsive UI and Touch Optimization",
+    "description": "Verify that the application UI adapts correctly across mobile, tablet, and desktop resolutions and interfaces with touch-friendly elements on mobile.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the app on a desktop screen."
+      },
+      {
+        "type": "assertion",
+        "description": "Layout uses suitable components for large screens, supports keyboard navigation."
+      },
+      {
+        "type": "action",
+        "description": "Open the app on a mobile device or emulator."
+      },
+      {
+        "type": "assertion",
+        "description": "Layout is touch friendly, with appropriately sized buttons and inputs."
+      },
+      {
+        "type": "action",
+        "description": "Rotate the device to landscape and back to portrait."
+      },
+      {
+        "type": "assertion",
+        "description": "UI adjusts responsively without broken components or unusable controls."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Client-side Clipboard Content Encryption Verification",
+    "description": "Ensure clipboard content is encrypted on the client side before transmission and decrypted correctly by authorized clients only.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User shares clipboard text or file in a room."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the data sent over WebSocket is encrypted and not in plain text."
+      },
+      {
+        "type": "assertion",
+        "description": "Other clients in the room can decrypt and see the original content correctly."
+      },
+      {
+        "type": "assertion",
+        "description": "Clients outside of the room or unauthorized users cannot access or decrypt the content."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Room User Count Real-time Update",
+    "description": "Validate that the number of users present in a room updates in real-time when users join or leave the room.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User A creates a room."
+      },
+      {
+        "type": "assertion",
+        "description": "User count displays '1' immediately."
+      },
+      {
+        "type": "action",
+        "description": "User B joins the same room."
+      },
+      {
+        "type": "assertion",
+        "description": "User count updates to '2' for both User A and User B."
+      },
+      {
+        "type": "action",
+        "description": "User B leaves the room."
+      },
+      {
+        "type": "assertion",
+        "description": "User count updates back to '1' for User A."
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "File Upload Security with JWT and Password Validation",
+    "description": "Ensure that file uploads are allowed only for authenticated users with valid JWT and access to the correct password-protected room.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to upload a file without a valid JWT token."
+      },
+      {
+        "type": "assertion",
+        "description": "Upload is rejected with an authentication error."
+      },
+      {
+        "type": "action",
+        "description": "Login and join a password-protected room with a valid JWT."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to upload files to that room with correct JWT and password."
+      },
+      {
+        "type": "assertion",
+        "description": "File uploads succeed."
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Accessibility Compliance of Core UI Components",
+    "description": "Verify that all reusable UI components (buttons, inputs, dialogs, toasts, etc.) comply with accessibility standards (keyboard navigation, ARIA roles, color contrast).",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate through the app using keyboard only."
+      },
+      {
+        "type": "assertion",
+        "description": "All interactive components are reachable and operable."
+      },
+      {
+        "type": "action",
+        "description": "Use a screen reader to access UI content."
+      },
+      {
+        "type": "assertion",
+        "description": "Proper ARIA labels and roles are present and announced."
+      },
+      {
+        "type": "assertion",
+        "description": "Color contrast for text and interactive elements meets WCAG guidelines."
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Performance Under Load: Multiple Users Clipboard Sync",
+    "description": "Evaluate application responsiveness and synchronization accuracy with a high number of concurrent users sharing clipboards in the same room.",
+    "category": "performance",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate at least 50 users joining the same room."
+      },
+      {
+        "type": "action",
+        "description": "Multiple users share text and files simultaneously."
+      },
+      {
+        "type": "assertion",
+        "description": "Clipboard data synchronizes with minimal latency."
+      },
+      {
+        "type": "assertion",
+        "description": "UI remains responsive for all participants."
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Room Code Validation for Format and Uniqueness",
+    "description": "Confirm that room codes are strictly 4-character alphanumeric strings and duplicate room codes are not created.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to create a room with a code shorter or longer than 4 characters or containing invalid characters."
+      },
+      {
+        "type": "assertion",
+        "description": "Room creation is blocked with an appropriate validation error."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to create a room with a 4-character code already in use."
+      },
+      {
+        "type": "assertion",
+        "description": "Room creation is prevented, and user is notified of duplicate code."
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "React Query Cache Consistency on Clipboard Updates",
+    "description": "Verify that React Query properly caches and updates clipboard data in the UI when server state changes occur during sharing.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User shares new clipboard data."
+      },
+      {
+        "type": "assertion",
+        "description": "Clipboard data is immediately reflected in the UI from React Query cache update."
+      },
+      {
+        "type": "action",
+        "description": "User reloads the room page."
+      },
+      {
+        "type": "assertion",
+        "description": "React Query refetches and displays current clipboard data correctly."
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Error Handling for Network Disconnection During Real-time Sharing",
+    "description": "Test how the application handles temporary network disconnects during WebSocket communication and clipboard sharing.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User joins a room and shares clipboard data."
+      },
+      {
+        "type": "action",
+        "description": "Simulate network disconnection."
+      },
+      {
+        "type": "action",
+        "description": "Attempt to send new clipboard data during disconnection."
+      },
+      {
+        "type": "assertion",
+        "description": "App shows user a network error or reconnecting status."
+      },
+      {
+        "type": "action",
+        "description": "Restore network connection."
+      },
+      {
+        "type": "assertion",
+        "description": "WebSocket reconnects automatically, and clipboard synchronization resumes without data loss."
+      }
+    ]
+  }
+]
