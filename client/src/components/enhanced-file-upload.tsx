@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { useWebSocket } from "@/hooks/use-websocket";
+// import { useWebSocket } from "@/hooks/use-websocket";
 import { queryClient } from "@/lib/queryClient";
 import {
   Upload,
@@ -58,11 +58,17 @@ interface UploadProgress {
 interface FileUploadProps {
   tag: string;
   roomPassword?: string | null;
+  isConnected: boolean;
+  userCount: number;
+  lastMessage: any;
 }
 
 export default function EnhancedFileUpload({
   tag,
   roomPassword,
+  isConnected,
+  userCount,
+  lastMessage,
 }: FileUploadProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -76,7 +82,7 @@ export default function EnhancedFileUpload({
     }
     return headers;
   };
-  const { isConnected, userCount, lastMessage } = useWebSocket(tag);
+  // Use props from parent Room component for WebSocket state
   const [downloadProgress, setDownloadProgress] = useState<DownloadProgress>({
     isDownloading: false,
     progress: 0,

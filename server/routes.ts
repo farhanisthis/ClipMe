@@ -127,6 +127,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.createUser(userData);
+      
+      // Generate a random 4-character default room tag for the user
+      const generateRandomTag = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 4; i++) {
+          result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+      };
+
+      let defaultRoomTag = generateRandomTag();
+      
+      // Ensure the generated tag is unique
+      while (await storage.getRoom(defaultRoomTag)) {
+        defaultRoomTag = generateRandomTag();
+      }
+
+      // Create the default room for the user
+      const defaultRoom = await storage.createRoom({
+        tag: defaultRoomTag,
+        isLocked: false,
+        maxUsers: 1, // Exclusive to this user
+        createdBy: user.id,
+        expiresAt: null, // Never expires for registered users
+      });
+
+      console.log(`🏠 Created default room ${defaultRoomTag} for user ${user.username}`);
+
       const token = jwt.sign(
         { id: user.id, username: user.username },
         JWT_SECRET,
@@ -137,6 +166,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "User registered successfully",
         user: { id: user.id, username: user.username, avatar: user.avatar },
         token,
+        defaultRoom: {
+          tag: defaultRoom.tag,
+          id: defaultRoom.id,
+        },
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -265,6 +298,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ valid: isValid });
     } catch (error) {
       console.error("Error validating room password:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get user's rooms (requires authentication)
+  app.get("/api/user/rooms", async (req, res) => {
+    try {
+      const user = (req as any).user;
+      
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const userRooms = await storage.getUserRooms(user.id);
+      
+      res.json({
+        rooms: userRooms.map(room => ({
+          id: room.id,
+          tag: room.tag,
+          isLocked: room.isLocked,
+          maxUsers: room.maxUsers,
+          createdAt: room.createdAt,
+          isDefault: room.maxUsers === 1, // Default rooms have maxUsers = 1
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching user rooms:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -695,7 +695,13 @@ export default function Room() {
           )}
 
           {showFileSharing && (
-            <EnhancedFileUpload tag={tag} roomPassword={roomPassword} />
+            <EnhancedFileUpload
+              tag={tag}
+              roomPassword={roomPassword}
+              isConnected={isConnected}
+              userCount={userCount}
+              lastMessage={lastMessage}
+            />
           )}
         </div>
       </main>

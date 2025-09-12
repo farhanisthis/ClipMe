@@ -28,7 +28,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
-            <Watermark />
+            {/* <Watermark /> */}
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>

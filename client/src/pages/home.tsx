@@ -122,13 +122,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden theme-transition">
-      {/* Enhanced Animated Background with better dark blue tones */}
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 relative overflow-hidden theme-transition ">
+      {/* Enhanced Animated Background with better dark blue tones */}qw
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-blue-950 dark:via-slate-900 dark:to-indigo-950"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.15),transparent_70%)] dark:bg-[radial-gradient(circle_at_30%_20%,rgba(96,165,250,0.12),transparent_70%)]"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.15),transparent_70%)] dark:bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.10),transparent_70%)]"></div>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.08),transparent_60%)] dark:bg-[radial-gradient(circle_at_50%_50%,rgba(99,102,241,0.08),transparent_60%)]"></div>
-
       {/* Enhanced floating particles with different sizes and animations */}
       <div
         className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400/20 rounded-full animate-bounce"
@@ -150,7 +149,6 @@ export default function Home() {
         className="absolute top-1/2 right-1/5 w-2.5 h-2.5 bg-cyan-400/15 rounded-full animate-ping"
         style={{ animationDelay: "1.5s", animationDuration: "3.5s" }}
       ></div>
-
       {/* Theme Toggle and Auth Section with enhanced styling */}
       <div className="absolute top-4 right-4 z-10 sm:top-6 sm:right-6 flex items-center gap-3">
         {user ? (
@@ -192,7 +190,6 @@ export default function Home() {
         )}
         <ThemeToggle />
       </div>
-
       <div className="max-w-md w-full relative z-10 mx-auto">
         {/* Header Section with enhanced animations */}
         <div className="text-center mb-8 sm:mb-10">
@@ -210,7 +207,7 @@ export default function Home() {
         {/* Premium ClipTag Input Form */}
         <Card className="shadow-2xl border-0 glass dark:glass-dark hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-2 animate-fadeIn rounded-3xl">
           <CardContent className="p-6 sm:p-8">
-            <form onSubmit={handleSubmit} className="animate-slideIn">
+            <form onSubmit={handleSubmit} className="animate-slideIn ">
               <Label className="block text-base font-semibold text-gray-800 dark:text-gray-100 mb-6 text-center">
                 Enter your 4-character ClipTag
               </Label>

@@ -46,6 +46,7 @@ export interface IStorage {
   createRoom(room: InsertRoom): Promise<Room>;
   deleteRoom(tag: string): Promise<void>;
   validateRoomPassword(tag: string, password: string): Promise<boolean>;
+  getUserRooms(userId: string): Promise<Room[]>;
   // File storage methods
   storeFile(tag: string, file: any): Promise<FileMetadata>;
   getFile(tag: string): Promise<FileMetadata | undefined>;
@@ -185,6 +186,12 @@ export class MemStorage implements IStorage {
       return true; // No password required
     }
     return bcrypt.compare(password, room.password);
+  }
+
+  async getUserRooms(userId: string): Promise<Room[]> {
+    return Array.from(this.rooms.values()).filter(
+      (room) => room.createdBy === userId
+    );
   }
 
   // Notification methods
