@@ -56,7 +56,7 @@ export default function Room() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [roomPassword, setRoomPassword] = useState<string | null>(null);
   const [contentHistory, setContentHistory] = useState<ClipboardData[]>([]);
-  const [showFileSharing, setShowFileSharing] = useState(true);
+  const [showFileSharing, setShowFileSharing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const tag = params?.tag?.toUpperCase() || "";
