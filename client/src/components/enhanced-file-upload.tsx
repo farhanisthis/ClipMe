@@ -242,8 +242,7 @@ export default function EnhancedFileUpload({
     },
     onSuccess: () => {
       toast({
-        description:
-          "File uploaded successfully! Auto-deletes in 10 minutes for privacy.",
+        description: "File uploaded successfully!",
       });
       // Reset file input
       if (fileInputRef.current) {
@@ -421,7 +420,7 @@ export default function EnhancedFileUpload({
       }));
 
       // Create blob and download
-      const blob = new Blob(chunks);
+      const blob = new Blob(chunks.map((chunk) => new Uint8Array(chunk)));
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -590,7 +589,7 @@ export default function EnhancedFileUpload({
             <span>File Upload</span>
           </CardTitle>
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
-            Upload files up to 1GB - auto-deletes in 10 minutes for privacy
+            Upload files up to 1GB - stored persistently
           </p>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 lg:p-8">
@@ -729,7 +728,7 @@ export default function EnhancedFileUpload({
             )}
           </CardTitle>
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
-            Manage and download files - auto-deletes in 10 minutes for privacy
+            Manage and download files - stored persistently
           </p>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 lg:p-8">
@@ -815,10 +814,6 @@ export default function EnhancedFileUpload({
                       <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         Uploaded: {formatRelativeTime(file.uploadedAt)}
-                      </div>
-                      <div className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
-                        <Shield className="w-3 h-3" />
-                        Auto-deletes in {file.minutesRemaining} min
                       </div>
                     </div>
 

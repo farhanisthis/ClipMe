@@ -329,7 +329,9 @@ export default function CreateRoomModal({
           <ul className="text-xs text-blue-600 dark:text-blue-400 mt-1 space-y-1">
             <li>• Real-time content synchronization</li>
             <li>• File sharing and management</li>
-            <li>• Auto-deletion for privacy (15 min text, 10 min files)</li>
+            <li>
+              • Persistent storage - content remains until manually deleted
+            </li>
             {formData.isLocked && (
               <li>• Password protection for secure access</li>
             )}

@@ -92,26 +92,103 @@ const upload = multer({
   },
 });
 
-// Helper function to calculate expiration info
+// Helper function to get expiration info (no expiration for persistent storage)
 function getExpirationInfo(updatedAt: Date): {
-  minutesRemaining: number;
-  expiresAt: Date;
+  minutesRemaining: null;
+  expiresAt: null;
 } {
-  const AUTO_DELETE_MINUTES = 15;
-  const now = new Date();
-  const ageInMinutes = (now.getTime() - updatedAt.getTime()) / (1000 * 60);
-  const minutesRemaining = Math.max(0, AUTO_DELETE_MINUTES - ageInMinutes);
-  const expiresAt = new Date(
-    updatedAt.getTime() + AUTO_DELETE_MINUTES * 60 * 1000
-  );
-
   return {
-    minutesRemaining: Math.round(minutesRemaining),
-    expiresAt,
+    minutesRemaining: null,
+    expiresAt: null,
   };
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Rename a room (only creator can rename)
+  app.patch("/api/rooms/:tag", authenticate, async (req, res) => {
+    try {
+      const oldTag = req.params.tag?.toUpperCase();
+      const { newTag } = req.body;
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      if (
+        !oldTag ||
+        !newTag ||
+        newTag.length !== 4 ||
+        !/^[A-Z0-9]{4}$/.test(newTag)
+      ) {
+        return res.status(400).json({
+          message: "Invalid new tag. Must be 4 alphanumeric characters.",
+        });
+      }
+      const renamedRoom = await storage.renameRoom(oldTag, newTag, user.id);
+      res.json({
+        message: "Room renamed successfully",
+        room: {
+          id: renamedRoom.id,
+          tag: renamedRoom.tag,
+          isLocked: renamedRoom.isLocked,
+          maxUsers: renamedRoom.maxUsers,
+          createdAt: renamedRoom.createdAt,
+        },
+      });
+    } catch (error: any) {
+      if (
+        error.message === "Room not found" ||
+        error.message === "Unauthorized" ||
+        error.message === "New tag already exists"
+      ) {
+        return res.status(400).json({ message: error.message });
+      }
+      console.error("Error renaming room:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Delete a room (only creator can delete)
+  app.delete("/api/rooms/:tag", authenticate, async (req, res) => {
+    try {
+      const tag = req.params.tag?.toUpperCase();
+      const user = (req as any).user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      const room = await storage.getRoom(tag);
+      if (!room) {
+        return res.status(404).json({ message: "Room not found" });
+      }
+      if (room.createdBy !== user.id) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      await storage.deleteRoom(tag);
+      res.json({ message: "Room deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting room:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  // Get clipboard history for a user in a room (registered users only)
+  app.get("/api/clip/history/:tag", authenticate, async (req, res) => {
+    try {
+      const tag = req.params.tag?.toUpperCase();
+      const userId = (req as any).user?.id;
+      if (!tag || tag.length !== 4 || !/^[A-Z0-9]{4}$/.test(tag)) {
+        return res.status(400).json({
+          message: "Invalid ClipTag. Must be 4 alphanumeric characters.",
+        });
+      }
+      if (!userId) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      const history = await storage.getClipboardHistoryByUser(tag, userId);
+      res.json({ history });
+    } catch (error) {
+      console.error("Error fetching clipboard history:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
   // Enable authentication middleware for all routes
   app.use(authenticate);
 
@@ -127,11 +204,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const user = await storage.createUser(userData);
-      
+
       // Generate a random 4-character default room tag for the user
       const generateRandomTag = () => {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-        let result = '';
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "";
         for (let i = 0; i < 4; i++) {
           result += chars.charAt(Math.floor(Math.random() * chars.length));
         }
@@ -139,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       let defaultRoomTag = generateRandomTag();
-      
+
       // Ensure the generated tag is unique
       while (await storage.getRoom(defaultRoomTag)) {
         defaultRoomTag = generateRandomTag();
@@ -154,7 +231,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt: null, // Never expires for registered users
       });
 
-      console.log(`🏠 Created default room ${defaultRoomTag} for user ${user.username}`);
+      console.log(
+        `🏠 Created default room ${defaultRoomTag} for user ${user.username}`
+      );
 
       const token = jwt.sign(
         { id: user.id, username: user.username },
@@ -306,15 +385,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/rooms", async (req, res) => {
     try {
       const user = (req as any).user;
-      
+
       if (!user) {
         return res.status(401).json({ message: "Authentication required" });
       }
 
       const userRooms = await storage.getUserRooms(user.id);
-      
+
       res.json({
-        rooms: userRooms.map(room => ({
+        rooms: userRooms.map((room) => ({
           id: room.id,
           tag: room.tag,
           isLocked: room.isLocked,
@@ -347,8 +426,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           content: "",
           updatedAt: new Date(),
           expiresIn: {
-            minutesRemaining: 15,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            minutesRemaining: null,
+            expiresAt: null,
           },
         });
       }
@@ -388,27 +467,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content,
       });
 
-      // Broadcast real-time update to all clients in the room
-      if ((global as any).broadcastToRoom) {
-        (global as any).broadcastToRoom(tag, {
-          type: "clipboardUpdate",
-          content: clipboard.content,
-          updatedAt: clipboard.updatedAt,
-        });
-      }
-
       res.json({
-        message: "Clipboard updated successfully",
+        tag: clipboard.tag,
         content: clipboard.content,
-        updatedAt: clipboard.updatedAt,
-        expiresInMinutes: 15,
-        privacyNotice:
-          "Content will be automatically deleted after 15 minutes for privacy protection",
+        message: "Content saved successfully",
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
-          message: error.errors[0]?.message || "Invalid input",
+          message: error.errors[0].message,
         });
       }
       console.error("Error saving clipboard:", error);
@@ -480,9 +547,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fileName: fileMetadata.originalName,
           fileSize: fileMetadata.size,
           uploadedAt: fileMetadata.uploadedAt,
-          expiresInMinutes: 10,
-          privacyNotice:
-            "File will be automatically deleted after 10 minutes for privacy protection",
         });
       } catch (error) {
         console.error("Error uploading file:", error);
@@ -512,28 +576,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate expiration info for each file
-      const now = new Date();
-      const filesWithExpiration = files.map((file) => {
-        const ageInMinutes =
-          (now.getTime() - file.uploadedAt.getTime()) / (1000 * 60);
-        const minutesRemaining = Math.max(0, 10 - ageInMinutes);
-
+      // Return file info without expiration
+      const filesWithInfo = files.map((file) => {
         return {
-          fileId: file.id,
-          fileName: file.originalName,
-          fileSize: file.size,
+          id: file.id,
+          originalName: file.originalName,
           mimetype: file.mimetype,
+          size: file.size,
           uploadedAt: file.uploadedAt,
-          minutesRemaining: Math.round(minutesRemaining),
-          expiresAt: new Date(file.uploadedAt.getTime() + 10 * 60 * 1000),
+          minutesRemaining: null,
+          expiresAt: null,
         };
       });
 
       const totalSize = files.reduce((sum, file) => sum + file.size, 0);
 
       res.json({
-        files: filesWithExpiration,
+        files: filesWithInfo,
         totalFiles: files.length,
         totalSize,
       });
@@ -564,20 +623,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate expiration info
-      const now = new Date();
-      const ageInMinutes =
-        (now.getTime() - file.uploadedAt.getTime()) / (1000 * 60);
-      const minutesRemaining = Math.max(0, 10 - ageInMinutes);
-
       res.json({
         fileId: file.id,
         fileName: file.originalName,
         fileSize: file.size,
         mimetype: file.mimetype,
         uploadedAt: file.uploadedAt,
-        minutesRemaining: Math.round(minutesRemaining),
-        expiresAt: new Date(file.uploadedAt.getTime() + 10 * 60 * 1000),
+        minutesRemaining: null,
+        expiresAt: null,
       });
     } catch (error) {
       console.error("Error fetching file metadata:", error);

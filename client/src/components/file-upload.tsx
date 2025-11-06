@@ -88,6 +88,9 @@ export default function FileUpload({ tag }: FileUploadProps) {
       enabled: false, // Only fetch when explicitly requested
     });
 
+  // Get the first file for backwards compatibility
+  const fileData = filesData?.files?.[0];
+
   // React to WebSocket messages
   useEffect(() => {
     if (lastMessage) {
@@ -205,8 +208,7 @@ export default function FileUpload({ tag }: FileUploadProps) {
     },
     onSuccess: () => {
       toast({
-        description:
-          "File uploaded successfully! Auto-deletes in 10 minutes for privacy.",
+        description: "File uploaded successfully!",
       });
       // Reset file input
       if (fileInputRef.current) {
@@ -247,7 +249,7 @@ export default function FileUpload({ tag }: FileUploadProps) {
   });
 
   // Check files mutation
-  const checkFilesMutation = useMutation({
+  const checkFileMutation = useMutation({
     mutationFn: async (): Promise<FilesResponse> => {
       queryClient.invalidateQueries({ queryKey: ["/api/files", tag] });
       return queryClient.fetchQuery({
@@ -404,7 +406,7 @@ export default function FileUpload({ tag }: FileUploadProps) {
       }));
 
       // Create blob and download
-      const blob = new Blob(chunks);
+      const blob = new Blob(chunks.map((chunk) => new Uint8Array(chunk)));
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -499,7 +501,7 @@ export default function FileUpload({ tag }: FileUploadProps) {
             <span>File Upload</span>
           </CardTitle>
           <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">
-            Upload files up to 1GB - auto-deletes in 10 minutes for privacy
+            Upload files up to 1GB - stored persistently
           </p>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 lg:p-8">
@@ -689,10 +691,6 @@ export default function FileUpload({ tag }: FileUploadProps) {
                   <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Uploaded: {formatRelativeTime(fileData.uploadedAt)}
-                  </div>
-                  <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-lg border border-amber-200 dark:border-amber-800/50">
-                    <Shield className="w-3 h-3" />
-                    Auto-deletes in {fileData.minutesRemaining} min
                   </div>
                 </div>
 

@@ -47,6 +47,7 @@ export interface IStorage {
   deleteRoom(tag: string): Promise<void>;
   validateRoomPassword(tag: string, password: string): Promise<boolean>;
   getUserRooms(userId: string): Promise<Room[]>;
+  renameRoom(oldTag: string, newTag: string, userId: string): Promise<Room>;
   // File storage methods
   storeFile(tag: string, file: any): Promise<FileMetadata>;
   getFile(tag: string): Promise<FileMetadata | undefined>;
@@ -59,18 +60,32 @@ export interface IStorage {
   // Presence methods
   updatePresence(presence: InsertPresence): Promise<Presence>;
   getPresence(tag: string): Promise<Presence[]>;
-  startCleanupScheduler(): void;
 }
 
 export class MemStorage implements IStorage {
+  async renameRoom(
+    oldTag: string,
+    newTag: string,
+    userId: string
+  ): Promise<Room> {
+    const oldRoomTag = oldTag.toUpperCase();
+    const newRoomTag = newTag.toUpperCase();
+    const room = this.rooms.get(oldRoomTag);
+    if (!room) throw new Error("Room not found");
+    if (room.createdBy !== userId) throw new Error("Unauthorized");
+    if (this.rooms.has(newRoomTag)) throw new Error("New tag already exists");
+    // Remove old room, create new with same data but new tag
+    this.rooms.delete(oldRoomTag);
+    const renamedRoom = { ...room, tag: newRoomTag };
+    this.rooms.set(newRoomTag, renamedRoom);
+    return renamedRoom;
+  }
   private users: Map<string, User>;
   private clipboards: Map<string, Clipboard>;
   private files: Map<string, FileMetadata[]>; // Changed to store arrays of files
   private rooms: Map<string, Room>;
   private notifications: Map<string, Notification[]>;
   private presence: Map<string, Presence[]>;
-  private cleanupInterval: NodeJS.Timeout | null;
-  private readonly AUTO_DELETE_MINUTES = 10; // Auto-delete files after 10 minutes
 
   constructor() {
     this.users = new Map();
@@ -79,8 +94,6 @@ export class MemStorage implements IStorage {
     this.rooms = new Map();
     this.notifications = new Map();
     this.presence = new Map();
-    this.cleanupInterval = null;
-    this.startCleanupScheduler();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -122,21 +135,17 @@ export class MemStorage implements IStorage {
       content: insertClipboard.content,
       updatedAt: new Date(),
       userId: insertClipboard.userId || null,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
+      expiresAt: null, // Content persists indefinitely
     };
     this.clipboards.set(insertClipboard.tag, clipboard);
-    console.log(
-      `📋 Content saved for room ${insertClipboard.tag} - will auto-delete in ${this.AUTO_DELETE_MINUTES} minutes`
-    );
+    console.log(`📋 Content saved for room ${insertClipboard.tag}`);
     return clipboard;
   }
 
   async deleteClipboard(tag: string): Promise<void> {
     const deleted = this.clipboards.delete(tag);
     if (deleted) {
-      console.log(
-        `🗑️  Auto-deleted expired content for room ${tag} (${this.AUTO_DELETE_MINUTES} min privacy policy)`
-      );
+      console.log(`🗑️  Deleted content for room ${tag}`);
     }
   }
 
@@ -192,6 +201,21 @@ export class MemStorage implements IStorage {
     return Array.from(this.rooms.values()).filter(
       (room) => room.createdBy === userId
     );
+  }
+
+  // Get clipboard history for a user in a room
+  async getClipboardHistoryByUser(
+    tag: string,
+    userId: string
+  ): Promise<Clipboard[]> {
+    // In-memory: just return the current clipboard if userId matches
+    // For production: query DB for all clipboard entries for this user and tag
+    const result: Clipboard[] = [];
+    const clipboard = this.clipboards.get(tag);
+    if (clipboard && clipboard.userId === userId) {
+      result.push(clipboard);
+    }
+    return result;
   }
 
   // Notification methods
@@ -279,7 +303,7 @@ export class MemStorage implements IStorage {
     this.files.set(roomTag, existingFiles);
 
     console.log(
-      `📁 File "${file.originalname}" uploaded for room ${roomTag} (${existingFiles.length} total files) - will auto-delete in ${this.AUTO_DELETE_MINUTES} minutes`
+      `📁 File "${file.originalname}" uploaded for room ${roomTag} (${existingFiles.length} total files)`
     );
     return fileMetadata;
   }
@@ -296,11 +320,7 @@ export class MemStorage implements IStorage {
   async deleteFile(tag: string): Promise<void> {
     const deleted = this.files.delete(tag.toUpperCase());
     if (deleted) {
-      console.log(
-        `🗑️  Auto-deleted expired files for room ${tag.toUpperCase()} (${
-          this.AUTO_DELETE_MINUTES
-        } min privacy policy)`
-      );
+      console.log(`🗑️  Deleted files for room ${tag.toUpperCase()}`);
     }
   }
 
@@ -313,70 +333,6 @@ export class MemStorage implements IStorage {
         this.files.set(roomTag, filteredFiles);
         console.log(`🗑️  Deleted file ${fileId} from room ${roomTag}`);
       }
-    }
-  }
-
-  startCleanupScheduler(): void {
-    // Run cleanup every minute to check for expired content
-    this.cleanupInterval = setInterval(() => {
-      this.cleanupExpiredContent();
-    }, 60 * 1000); // Check every minute
-
-    console.log(
-      `🛡️  Privacy protection: Content auto-deletion enabled (${this.AUTO_DELETE_MINUTES} minutes)`
-    );
-  }
-
-  private cleanupExpiredContent(): void {
-    const now = new Date();
-    const expiredTags: string[] = [];
-    const expiredFileTags: string[] = [];
-
-    // Check each clipboard for expiration (15 minutes for text)
-    this.clipboards.forEach((clipboard, tag) => {
-      const ageInMinutes =
-        (now.getTime() - clipboard.updatedAt.getTime()) / (1000 * 60);
-
-      if (ageInMinutes >= 15) {
-        // Keep 15 minutes for clipboard content
-        expiredTags.push(tag);
-      }
-    });
-
-    // Check each file array for expiration (10 minutes for files)
-    this.files.forEach((files, tag) => {
-      const validFiles = files.filter((file) => {
-        const ageInMinutes =
-          (now.getTime() - file.uploadedAt.getTime()) / (1000 * 60);
-        return ageInMinutes < this.AUTO_DELETE_MINUTES;
-      });
-
-      if (validFiles.length !== files.length) {
-        if (validFiles.length === 0) {
-          expiredFileTags.push(tag);
-        } else {
-          this.files.set(tag, validFiles);
-        }
-      }
-    });
-
-    // Delete expired content
-    for (const tag of expiredTags) {
-      this.deleteClipboard(tag);
-    }
-
-    // Delete expired files
-    for (const tag of expiredFileTags) {
-      this.deleteFile(tag);
-    }
-  }
-
-  // Graceful shutdown cleanup
-  destroy(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-      console.log("🛡️  Privacy cleanup scheduler stopped");
     }
   }
 }
