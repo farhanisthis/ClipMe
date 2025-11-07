@@ -314,14 +314,12 @@ export default function Room() {
       switch (lastMessage.type) {
         case "clipboardUpdate":
           // Auto-fetch new content when someone else updates it
+          queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
+          
           if (lastMessage.content && lastMessage.updatedAt) {
             const newContent: ClipboardData = {
               content: lastMessage.content,
               updatedAt: lastMessage.updatedAt,
-              expiresIn: {
-                minutesRemaining: 15,
-                expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-              },
             };
 
             // Add to history if it's different from the last one
@@ -336,7 +334,7 @@ export default function Room() {
           break;
       }
     }
-  }, [lastMessage]);
+  }, [lastMessage, queryClient, tag]);
 
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);

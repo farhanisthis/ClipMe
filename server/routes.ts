@@ -467,6 +467,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content,
       });
 
+      // Broadcast real-time update to all clients in the room
+      if ((global as any).broadcastToRoom) {
+        (global as any).broadcastToRoom(tag, {
+          type: "clipboardUpdate",
+          content: clipboard.content,
+          updatedAt: clipboard.updatedAt,
+        });
+      }
+
       res.json({
         tag: clipboard.tag,
         content: clipboard.content,
