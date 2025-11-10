@@ -34,6 +34,7 @@ import {
 import QRModal from "@/components/qr-modal";
 import RoomPasswordModal from "@/components/room-password-modal";
 import EnhancedFileUpload from "@/components/enhanced-file-upload";
+import { Watermark } from "@/components/ui/watermark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 
@@ -315,7 +316,7 @@ export default function Room() {
         case "clipboardUpdate":
           // Auto-fetch new content when someone else updates it
           queryClient.invalidateQueries({ queryKey: ["/api/clip", tag] });
-          
+
           if (lastMessage.content && lastMessage.updatedAt) {
             const newContent: ClipboardData = {
               content: lastMessage.content,
@@ -708,6 +709,8 @@ export default function Room() {
         roomTag={tag}
         onPasswordValid={handlePasswordValid}
       />
+      {/* Watermark (fixed, animated) */}
+      <Watermark />
     </div>
   );
 }
