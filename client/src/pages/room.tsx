@@ -34,7 +34,6 @@ import {
 import QRModal from "@/components/qr-modal";
 import RoomPasswordModal from "@/components/room-password-modal";
 import EnhancedFileUpload from "@/components/enhanced-file-upload";
-import { Watermark } from "@/components/ui/watermark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Logo } from "@/components/logo";
 
@@ -709,8 +708,6 @@ export default function Room() {
         roomTag={tag}
         onPasswordValid={handlePasswordValid}
       />
-      {/* Watermark (fixed, animated) */}
-      <Watermark />
     </div>
   );
 }
